@@ -1,0 +1,113 @@
+CREATE TABLE `reset` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `email` varchar(255),
+  `token` varchar(255),
+  `creation_date` date
+);
+
+CREATE TABLE `users` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `username` varchar(255),
+  `email` varchar(255),
+  `password` varchar(255),
+  `creation_data` date,
+  `last_login_date` date,
+  `status` varchar(255),
+  `googleId` varchar(255),
+  `token` varchar(255),
+  `avatar` longtext
+);
+
+CREATE TABLE `roles` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255)
+);
+
+CREATE TABLE `member_role` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `member_id` integer,
+  `role_id` integer,
+  `band_id` integer
+);
+
+CREATE TABLE `band` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255),
+  `description` varchar(255)
+);
+
+CREATE TABLE `band_member` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `user_id` integer,
+  `band_id` integer,
+  `role` varchar(255)
+);
+
+CREATE TABLE `song` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255),
+  `artist` varchar(255),
+  `duration` integer,
+  `link` varchar(255)
+);
+
+CREATE TABLE `setlist` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `band_id` integer,
+  `primary` bool
+);
+
+CREATE TABLE `setlist_song` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `setlist_id` integer,
+  `song_id` integer
+);
+
+CREATE TABLE `event` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255),
+  `band_id` integer,
+  `setlist_id` integer,
+  `venue_id` integer,
+  `vanue_name` varchar(255),
+  `address` varchar(255),
+  `datetime` datetime,
+  `poster` longtext
+);
+
+CREATE TABLE `venue` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255),
+  `address` varchar(255),
+  `website` varchar(255)
+);
+
+CREATE TABLE `member_event` (
+  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `member_id` integer,
+  `event_id` integer
+);
+
+ALTER TABLE `member_role` ADD FOREIGN KEY (`member_id`) REFERENCES `band_member` (`id`);
+
+ALTER TABLE `member_role` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
+
+ALTER TABLE `band_member` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+ALTER TABLE `band_member` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
+
+ALTER TABLE `setlist` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
+
+ALTER TABLE `setlist_song` ADD FOREIGN KEY (`song_id`) REFERENCES `song` (`id`);
+
+ALTER TABLE `setlist_song` ADD FOREIGN KEY (`setlist_id`) REFERENCES `setlist` (`id`);
+
+ALTER TABLE `event` ADD FOREIGN KEY (`venue_id`) REFERENCES `venue` (`id`);
+
+ALTER TABLE `event` ADD FOREIGN KEY (`setlist_id`) REFERENCES `setlist` (`id`);
+
+ALTER TABLE `event` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
+
+ALTER TABLE `member_event` ADD FOREIGN KEY (`member_id`) REFERENCES `band_member` (`id`);
+
+ALTER TABLE `member_event` ADD FOREIGN KEY (`event_id`) REFERENCES `event` (`id`);

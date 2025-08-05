@@ -1,0 +1,38 @@
+{
+  "name": "gig-addicted-v2",
+  "version": "1.7.12",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "docker-compose up -d",
+    "recreate": "docker-compose up -d --force-recreate",
+    "stop": "docker-compose stop",
+    "docker-build": "docker-compose build",
+    "build-model": "cd models && npm install && npm run build",
+    "build-server": "cd server && npm install && npm run build",
+    "build-client": "cd client && npm install && npm run build",
+    "build": "npm run build-model && npm run build-server && npm run build-client",
+    "deploy-aws": "npm run build && cd server && eb deploy",
+    "patch": "npm version patch && git push --follow-tags",
+    "minor": "npm version minor && git push --follow-tags",
+    "major": "npm version major && git push --follow-tags",
+    "deploy-stage-patch": "npm run build && npm run patch && npm run deploy-stage",
+    "deploy-stage-minor": "npm run build && npm run minor && npm run deploy-stage",
+    "deploy-stage-major": "npm run build && npm run major && npm run deploy-stage",
+    "deploy-stage": "current_branch=$(git rev-parse --abbrev-ref HEAD) && version=$(node -p \"require('./package.json').version\") && git checkout stage && git merge $current_branch -m \"New stage deploy: v$version\" && git push origin stage && git checkout $current_branch",
+    "deploy-production": "version=$(node -p \"require('./package.json').version\") && git checkout production && git merge stage -m \"New production deploy: v$version\" && git push origin production && git checkout main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spadanera/gig-addicted-v2.git"
+  },
+  "author": "Nicola Zirilli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Spadanera/gig-addicted-v2/issues"
+  },
+  "homepage": "https://github.com/Spadanera/gig-addicted-v2#readme",
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}
