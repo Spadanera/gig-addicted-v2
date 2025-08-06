@@ -3,11 +3,9 @@ import sharp from 'sharp'
 
 export enum Roles {
     admin = 'admin',
-    checkout = 'checkout',
-    waiter = 'waiter',
-    bartender = 'bartender',
-    superuser = 'superuser',
-    client = 'client'
+    owner = 'owner',
+    editor = 'editor',
+    viewer = 'viewer'
 }
 
 export function hasMatchingRole(arr1: Roles[], arr2: Roles[]): boolean {
@@ -28,7 +26,7 @@ export const authorizationMiddleware = (role: Roles | Roles[]) => (req: Request,
         res.status(401).json('Unauthorized')
     }
     else {
-        if (userRoles.includes(Roles.superuser)) {
+        if (userRoles.includes(Roles.admin)) {
             next()
         }
         else {

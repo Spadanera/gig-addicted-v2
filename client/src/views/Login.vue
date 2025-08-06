@@ -26,6 +26,10 @@ async function login() {
     }
   }
 }
+
+async function googleLogin() {
+  location.href = "/auth/google"
+}
 </script>
 
 <template>
@@ -36,7 +40,7 @@ async function login() {
           <v-card>
             <v-card-text style="text-align: center;">
               <Logo></Logo>
-              <v-form ref="form" fast-fail @submit.prevent>
+              <!-- <v-form ref="form" fast-fail @submit.prevent>
                 <v-text-field :rules="[requiredRule, emailRule]" type="email" label="Email"
                   v-model="credentials.email"></v-text-field>
                 <v-text-field :rules="[requiredRule]" type="password" label="Password"
@@ -44,10 +48,10 @@ async function login() {
               </v-form>
               <p>
                 <RouterLink to="/askreset">Password dimenticata</RouterLink>
-              </p>
+              </p> -->
             </v-card-text>
             <v-card-actions>
-              <v-btn class="mt-2" type="submit" @click="login" block>ACCEDI</v-btn>
+              <v-btn class="mt-2" @click="googleLogin" block prepend-icon="mdi-google">ACCEDI CON GOOGLE</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>

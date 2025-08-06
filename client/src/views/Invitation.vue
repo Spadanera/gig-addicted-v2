@@ -13,6 +13,7 @@ const files = ref()
 const credentials = ref({
   username: '',
   password: '',
+  email: '',
   confirmPassword: '',
   token: props.token,
   avatar: ''
@@ -50,7 +51,7 @@ async function reset() {
         <v-col sm="8" cols="12" lg="4" xl="4">
           <v-card>
             <v-card-text style="text-align: center;">
-              <img alt="Gig Addicted" class="logo" src="@/assets/chicomanda.png" style="" width="240" height="240" />
+              <img alt="Gig Addicted" class="logo" src="@/assets/logo.png" style="" width="240" height="240" />
               <v-form fast-fail @submit.prevent ref="form">
                 <v-text-field type="text" label="Nome Utente" v-model="credentials.username"
                   :rules="[requiredRule]"></v-text-field>

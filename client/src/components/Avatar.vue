@@ -12,13 +12,13 @@ const props = defineProps<{
 }>()
 
 onMounted(async () => {
-    props.user.avatar = await axios.GetUserAvatar(props.user.id)
+    
 })
 </script>
 
 <template>
     <v-avatar :color="user.avatar ? 'default' : 'red'" :size="size" :start="start" v-if="user.username">
-        <v-img v-if="user.avatar" :alt="user.username" :src="user.avatar"></v-img>
-        <span v-else-if="user.username && alt">{{ user.username[0] }}</span>
+        <v-img :alt="user.username" :src="user.avatar"></v-img>
+        <!-- <span v-else-if="user.username && alt">{{ user.username[0] }}</span> -->
     </v-avatar>
 </template>

@@ -33,7 +33,9 @@ CREATE TABLE `member_role` (
 CREATE TABLE `band` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(255),
-  `description` varchar(255)
+  `description` varchar(255),
+  `logo`longtext
+  `isPublic` bool
 );
 
 CREATE TABLE `band_member` (
@@ -55,6 +57,7 @@ CREATE TABLE `setlist` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `band_id` integer,
   `primary` bool
+  `isPublic` bool
 );
 
 CREATE TABLE `setlist_song` (

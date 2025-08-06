@@ -10,3 +10,4 @@ tsconfig.tsbuildinfo
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .env
+client_secret_*

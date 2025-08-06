@@ -1,3 +1,5 @@
+import { RowDataPacket } from "mysql2"
+
 export interface Reset {
   id?: number
   email: string
@@ -5,12 +7,20 @@ export interface Reset {
   creation_date: Date
 }
 
-export interface User {
-  id: number
-  username: string
+export interface Invitation extends User {
+  
+}
+
+export interface Repository extends RowDataPacket {
+
+}
+
+export interface User extends Repository {
+  id?: number
+  username?: string
   email: string
   password?: string
-  creation_data: Date
+  creation_date?: string
   last_login_date?: Date
   status?: string
   googleId?: string
@@ -18,28 +28,30 @@ export interface User {
   avatar?: string
 }
 
-export interface Role {
+export interface Role extends Repository {
   id: number
   name: string
 }
 
-export interface MemberRole {
+export interface MemberRole extends Repository {
   id: number
   member_id: number
   role_id: number
   band_id: number
 }
 
-export interface Band {
-  id: number
-  name: string
-  description: string
-  setlist: [Setlist]
-  members: [BandMember]
-  songs: [Song]
+export interface Band extends Repository {
+  id?: number
+  name?: string
+  description?: string
+  logo?: string
+  isPublic?: boolean
+  setlist?: [Setlist]
+  members?: [BandMember]
+  songs?: [Song]
 }
 
-export interface BandMember {
+export interface BandMember extends Repository {
   id: number
   user_id: number
   band_id: number
@@ -47,7 +59,7 @@ export interface BandMember {
   roles: [Role]
 }
 
-export interface Song {
+export interface Song extends Repository {
   id: number
   name: string
   artist: string
@@ -55,20 +67,21 @@ export interface Song {
   link: string
 }
 
-export interface Setlist {
+export interface Setlist extends Repository {
   id: number
   band_id: number
   primary: boolean
+  isPublic: boolean
   songs: [Song]
 }
 
-export interface SetlistSong {
+export interface SetlistSong extends Repository {
   id: number
   setlist_id: number
   song_id: number
 }
 
-export interface Event {
+export interface Event extends Repository {
   id: number
   name: string
   band_id: number
@@ -84,14 +97,14 @@ export interface Event {
   poster: string
 }
 
-export interface Venue {
+export interface Venue extends Repository {
   id: number
   name: string
   address: string
   website?: string
 }
 
-export interface MemberEvent {
+export interface MemberEvent extends Repository {
   id: number
   member_id: number
   event_id: number

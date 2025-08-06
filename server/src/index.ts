@@ -2,17 +2,16 @@ import express, { Express, Request, Response } from "express"
 import session from "express-session"
 import path from "path"
 import passport from "passport"
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import history from "connect-history-api-fallback"
 import * as passportStrategy from "passport-local"
 import apiRouter from "./routes"
 import publicApiRouter from "./routes/public"
 import { createServer } from 'http'
-import { SocketIOService } from "./socket"
-import { Audit, User } from "../../models/src"
+import { User } from "../../models/src"
 import db from "./db"
 import connection from "./db/connection"
 import userApi from "./api/user"
-import auditApi from "./api/audit"
 
 const AUTH_COOKIE_NAME: string = 'lp-session'
 
@@ -26,7 +25,7 @@ const sessionStore = new MySQLStore(options);
 const app: Express = express()
 
 
-app.use(express.json())
+// app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(session({
     name: AUTH_COOKIE_NAME,
@@ -40,7 +39,6 @@ app.use(session({
 }))
 app.use(passport.initialize())
 app.use(passport.session())
-app.use(history())
 
 passport.use(new passportStrategy.Strategy(
     { usernameField: 'email', passwordField: 'password' }, async (email, password, done) => {
@@ -48,12 +46,59 @@ passport.use(new passportStrategy.Strategy(
             if (!email) { done(null, false) }
             const user = await userApi.getByEmailAndPassword(email, password)
             done(null, user)
-        } catch (e:any) {
+        } catch (e: any) {
             done(e, false, {
                 message: e.message
             });
         }
     }));
+
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            callbackURL: process.env.BASE_URL + '/auth/google/callback',
+        },
+        async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+            const googleId = profile.id;
+            const email = profile.emails[0].value;
+            const username = profile.displayName;
+            const avatar = profile.photos?.[0]?.value;
+            const token = accessToken;
+            const creation_date = new Date();
+            const last_login_date = new Date();
+
+            const rows = await db.query("SELECT * FROM users WHERE googleId = ?", [googleId])
+
+            if (rows.length > 0) {
+                // Update last login and token
+                await db.executeUpdate(`
+                UPDATE users SET last_login_date = ?, token = ? WHERE googleId = ?
+                `, [last_login_date, token, googleId]);
+
+                return done(null, rows[0]);
+            } else {
+                // Insert new user
+                const result = await db.executeInsert(`
+                INSERT INTO users (username, email, creation_data, last_login_date, status, googleId, token, avatar)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    username,
+                    email,
+                    creation_date,
+                    last_login_date,
+                    'active',
+                    googleId,
+                    token,
+                    avatar
+                ]);
+
+                return done(null, profile);
+            }
+        }
+    )
+);
 
 passport.serializeUser((user, done) => {
     done(null, user)
@@ -64,8 +109,7 @@ passport.deserializeUser((user: User, done) => {
     done(null, user);
 });
 
-
-app.post("/api/login", passport.authenticate('local'), async (req: Request, res: Response) => {
+app.post("/api/login", express.json(), passport.authenticate('local'), async (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
         res.json(req.user)
     } else {
@@ -78,8 +122,15 @@ app.post("/api/logout", async (req: Request, res: Response) => {
     res.json(1)
 })
 
-app.get("/api/checkauthentication", async (req: Request, res: Response) => {
+app.get("/api/checkauthentication", express.json(), async (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
+        const user: any = req.user
+        if (user.provider === 'google') {
+            user.username = user.displayName
+            user.email = user.emails[0].value
+            user.avatar = user.photos[0].value
+        }
+        // console.log(req.user)
         res.json(req.user)
     }
     else {
@@ -87,54 +138,39 @@ app.get("/api/checkauthentication", async (req: Request, res: Response) => {
     }
 })
 
-app.use('public', publicApiRouter)
+app.use('public', express.json(), publicApiRouter)
 
-app.use('/api', (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated() || /\/public\//.test(req.path)) {
+app.get("/auth/google",
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+)
+
+app.get(
+    '/auth/google/callback',
+    passport.authenticate('google', {
+        failureRedirect: '/auth/failure',
+        session: true,
+    }),
+    (req, res) => {
+        res.redirect('/mybands')
+    }
+)
+
+app.use('/api', express.json(), (req: Request, res: Response, next: any) => {
+    if (req.isAuthenticated() || /\/public\//.test(req.path) || /\/auth/.test(req.path)) {
         next()
     }
     else {
         res.status(401).json('Unauthorized')
     }
-}, (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated() && ['POST', 'PUT', 'DELETE'].includes(req.method)) {
-        auditApi.insert({
-            user_id: (req.user as any).id,
-            method: req.method,
-            path: req.path,
-            data: req.body,
-            event_id: req.body?.event_id,
-            table_id: req.body?.table_id,
-            order_id: req.body?.order_id
-        } as Audit)
-    }
-    next()
 }, apiRouter)
 
+app.use(history());
 
 app.use(express.static(path.join(__dirname, 'static')))
 
 // start listening
 
 const server = createServer(app)
-
-SocketIOService.instance().initialize(server, {
-    path: "/socket"
-})
-
-SocketIOService.instance().getServer().on('connection', function (socket) {
-    socket.on('end', function () {
-        socket.disconnect()
-    });
-
-    socket.on('leave', async (room) => {
-        await socket.leave(room)
-    });
-
-    socket.on('join', (room) => {
-        socket.join(room);
-    });
-});
 
 const port = process.env.PORT || 3000
 server.listen(port, () => {

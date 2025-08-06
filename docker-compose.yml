@@ -17,7 +17,7 @@ services:
       context: ./server
       target: build
     ports:
-      - 3000
+      - 3000:3000
       - 9229:9229
     volumes:
       - ./server:/app
@@ -34,7 +34,9 @@ services:
       BASE_URL: 'http://localhost'
       MAIL_API_KEY: ${MAIL_API_KEY}
       MAIL_API_SECRET: ${MAIL_API_SECRET}
-      MAIL_FROM: 'info-dev@chicomanda.com'
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      MAIL_FROM: 'info-dev@gigaddicted.com'
       MAIL_FROM_NAME: 'Info-dev - Gig Addicted'
       SECRET: 'pippopluto'
       PORT: 3000

@@ -21,21 +21,6 @@ class UserApi {
             WHERE IFNULL(status, '') != 'DELETED'`, [])
     }
 
-    async getAvailable(): Promise<User[]> {
-        const filter = `'${Object.values(Roles).join("','")}'`
-        return await db.query(`
-            SELECT id, username, avatar
-            FROM users 
-            WHERE status = 'ACTIVE'
-            AND EXISTS (
-                SELECT user_id
-                FROM user_role 
-                INNER JOIN roles ON roles.id = user_role.role_id
-                WHERE user_role.user_id = users.id
-                AND roles.name in (${filter})
-            )`, [])
-    }
-
     async getByEmailAndPassword(email: string, password: string): Promise<User> {
         const result = await db.queryOne<User>(`SELECT id, email, username, password, (select json_arrayagg(name) FROM roles
             INNER JOIN user_role on roles.id = user_role.role_id WHERE user_id = users.id) as roles, avatar
@@ -63,7 +48,7 @@ class UserApi {
     }
 
     async getAvatar(id: number): Promise<string> {
-        return (await db.queryOne<User>('SELECT avatar FROM users WHERE ID = ?', [id])).avatar
+        return (await db.queryOne<User>('SELECT avatar FROM users WHERE ID = ?', [id])).avatar || ''
     }
 
     async delete(id: number): Promise<void> {
