@@ -83,15 +83,15 @@ class Database {
         }
     }
 
-    async executeTransaction(queries: string[], valuesArray: any[][] = []): Promise<any> {
+    async executeTransaction(queries: string[] | string, valuesArray: any[][] = []): Promise<any> {
         let connection: PoolConnection | null = null
         try {
             connection = await this.getConnection()
             await connection.beginTransaction()
 
             const results = []
-            for (let i = 0; i < queries.length; i++) {
-                const query = queries[i]
+            for (let i = 0; i < valuesArray.length; i++) {
+                const query = Array.isArray(queries) ? queries[i] : queries
                 const values = valuesArray[i] || []
                 const [rows] = await connection.execute(query, this.safeNull(values))
                 results.push(rows)

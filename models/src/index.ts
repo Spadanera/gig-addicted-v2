@@ -1,5 +1,15 @@
 import { RowDataPacket } from "mysql2"
 
+export enum Roles {
+  owner = 'owner',
+  editor_detail = 'editor_details',
+  editor_setlist = 'editor_setlist',
+  editor_event = 'editor_event',
+  editor_member = 'editor_member',
+  viewer  = 'viwer',
+  unauthorized = 'unauthorized'
+}
+
 export interface Reset {
   id?: number
   email: string
@@ -26,11 +36,7 @@ export interface User extends Repository {
   googleId?: string
   token?: string
   avatar?: string
-}
-
-export interface Role extends Repository {
-  id: number
-  name: string
+  bands?: [BandMember]
 }
 
 export interface Band extends Repository {
@@ -40,7 +46,8 @@ export interface Band extends Repository {
   biography?: string
   logo?: string
   isPublic?: boolean
-  setlist?: [Setlist]
+  repertoire?: [Song],
+  setlist?: [Setlist],
   members?: [BandMember]
   songs?: [Song]
 }
@@ -49,8 +56,7 @@ export interface BandMember extends Repository {
   id: number
   user_id: number
   band_id: number
-  role: string
-  roles: [Role]
+  role: Roles
 }
 
 export interface Song extends Repository {
@@ -69,13 +75,20 @@ export interface Setlist extends Repository {
   band_id: number
   template: boolean
   isPublic: boolean
-  songs: [Song]
+  songs: [SetlistSong]
 }
 
-export interface SetlistSong extends Repository {
+export interface SetlistSong extends Song {
   id: number
   setlist_id: number
   song_id: number
+  position: number
+}
+
+export interface SetlistInput extends Repository { 
+  editSong: SetlistSong[], 
+  addedSong: SetlistSong[], 
+  removedSong: SetlistSong[] 
 }
 
 export interface Event extends Repository {

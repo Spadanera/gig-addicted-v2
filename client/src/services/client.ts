@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse, type AxiosRequestConfig, type RawAxiosRequestHeaders, type AxiosInstance, type AxiosProgressEvent } from 'axios'
-import { type Repository, type User, type Event, type Invitation, type Band } from "../../../models/src"
+import { type Repository, type User, type Event, type Invitation, type Band, type Song, type Setlist, type SetlistInput } from "../../../models/src"
 import router from '@/router'
 import { UserStore, SnackbarStore, ProgressStore } from '@/stores'
 import type { StoreDefinition } from 'pinia'
@@ -188,7 +188,9 @@ export default class Axios {
     }
 
     async CreateBand(band: Band): Promise<number> {
-        return await this.post<Band>("/band/myband", band)
+        const result = await this.post<Band>("/band/myband", band)
+        await this.CheckAuthentication()
+        return result
     }
 
     async GetBandDetails(band_id: number): Promise<Band> {
@@ -196,7 +198,7 @@ export default class Axios {
     }
 
     async UpdateBandDetails(band: Band): Promise<number> {
-        return await this.put<Band>("/band/myband", band)
+        return await this.put<Band>(`/band/myband/${band.id}/details`, band)
     }
 
     async UpdateBandLogo(formData: FormData, band_id: number): Promise<string> {
@@ -206,6 +208,39 @@ export default class Axios {
             }
         })
         return response.data
+    }
+
+    // Setlist Method
+    async GetRepertoire(band_id: number) {
+        return await this.get<Song>(`/band/myband/${band_id}/repertoire`)
+    }
+
+    async InsertSongIntoRepertoire(song: Song) {
+        return await this.post(`/band/myband/${song.band_id}/song`, song)
+    }
+
+    async RemoveSongFromRepertorire(song: Song) {
+        return await this.post(`/band/myband/${song.band_id}/song`, song)
+    }
+
+    async GetSetlistTemplates(song: Song) {
+        return await this.get<Setlist>(`/band/myband/${song.band_id}/setlist`)
+    }
+
+    async SaveSetlistSong(input: SetlistInput, band_id: number, setlist_id: number) {
+        return await this.put(`/band/myband/${band_id}/setlist/${setlist_id}/song`, input)
+    }
+
+    async CreateSetlist(setlist: Setlist) {
+        return await this.post(`/band/myband/${setlist.band_id}/setlist`, setlist)
+    }
+
+    async DeleteSetlist(setlist: Setlist) {
+        return await this.delete(`/band/myband/${setlist.band_id}/setlist/${setlist.id}`)
+    }
+
+     async EditSetlist(setlist: Setlist) {
+        return await this.put(`/band/myband/${setlist.band_id}/setlist/${setlist.id}`, setlist)
     }
 }
 

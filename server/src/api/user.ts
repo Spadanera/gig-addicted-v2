@@ -2,7 +2,7 @@ import db from "../db"
 import sendEmail from "../utils/mail"
 import { User } from "../../../models/src"
 import { type Invitation } from '../../../models/src/index'
-import { getCurrentDateTimeInItaly, Roles } from "../utils/helper"
+import { getCurrentDateTimeInItaly } from "../utils/helper"
 import { v4 as uuidv4 } from 'uuid'
 import { hashPassword, checkPassword } from "../utils/crypt"
 
@@ -13,7 +13,7 @@ class UserApi {
     async getAll(): Promise<User[]> {
         return await db.query(`
             SELECT id,username, email, status, avatar,
-                (select json_arrayagg(name) 
+                (SELECT JSON_ARRAYAGG(name) 
                 FROM roles
                 INNER JOIN user_role on roles.id = user_role.role_id 
                 WHERE user_id = users.id) as roles 
@@ -22,7 +22,7 @@ class UserApi {
     }
 
     async getByEmailAndPassword(email: string, password: string): Promise<User> {
-        const result = await db.queryOne<User>(`SELECT id, email, username, password, (select json_arrayagg(name) FROM roles
+        const result = await db.queryOne<User>(`SELECT id, email, username, password, (select JSON_ARRAYAGG(name) FROM roles
             INNER JOIN user_role on roles.id = user_role.role_id WHERE user_id = users.id) as roles, avatar
             FROM users WHERE email = ? AND status = 'ACTIVE'`, [email])
         if (result.id && (await checkPassword(password, result.password || ''))) {
@@ -37,6 +37,21 @@ class UserApi {
         else {
             throw new Error("Credenziali invalide")
         }
+    }
+
+    async getUserInfo(email: string): Promise<User[]> {
+        return await db.query<User>(`
+            SELECT id, email, username, avatar, 
+            (
+                SELECT JSON_ARRAYAGG(JSON_OBJECT(
+                                    'band_id', band_member.band_id,
+                                    'role', band_member.role
+                                ))  
+                FROM band_member 
+                WHERE users.id = band_member.user_id
+            ) as bands
+            FROM users WHERE email = ?`
+        , [email])
     }
 
     async getByEmail(email: string): Promise<User> {
@@ -68,7 +83,7 @@ class UserApi {
     async updateRoles(user: User): Promise<number> {
         return await db.executeTransaction([
             "DELETE FROM user_role WHERE user_id = ?",
-            `INSERT INTO user_role (user_id, role_id) SELECT ?, id FROM roles WHERE name in (${user.roles?.map((value:string) => `'${value}'`).join(',')})`
+            `INSERT INTO user_role (user_id, role_id) SELECT ?, id FROM roles WHERE name in (${user.roles?.map((value: string) => `'${value}'`).join(',')})`
         ], [
             [user.id],
             [user.id]
@@ -85,7 +100,7 @@ class UserApi {
 
             const result = await db.executeInsert("INSERT INTO users (email, token, creation_date) VALUES (?,?,?)", [invitation.email, invitation.token, invitation.creation_date])
 
-            await db.executeInsert(`INSERT INTO user_role (user_id, role_id) SELECT ?, id FROM roles WHERE name in (${user.roles?.map((value:string) => `'${value}'`).join(',')})`, [result])
+            await db.executeInsert(`INSERT INTO user_role (user_id, role_id) SELECT ?, id FROM roles WHERE name in (${user.roles?.map((value: string) => `'${value}'`).join(',')})`, [result])
 
             await sendEmail({
                 to: user.email,

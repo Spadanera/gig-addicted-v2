@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Axios from '@/services/client'
 import { UserStore } from '@/stores'
+import { type Song } from '../../../../models/src'
 
 const userStore = UserStore()
 const axios: Axios = new Axios()
+const repertoire = ref<Song[]>([])
 
 const props = defineProps(['band_id'])
+
+async function load() {
+    repertoire.value = await axios.GetRepertoire(props.band_id)
+}
+
+onMounted(async () => {
+    await load()
+})
 
 </script>
 

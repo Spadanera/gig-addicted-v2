@@ -1,8 +1,8 @@
-CREATE TABLE `reset` (
-  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
-  `email` varchar(255),
-  `token` varchar(255),
-  `creation_date` date
+CREATE TABLE `sessions` (
+  `session_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `expires` int unsigned NOT NULL,
+  `data` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  PRIMARY KEY (`session_id`)
 );
 
 CREATE TABLE `users` (
@@ -16,12 +16,7 @@ CREATE TABLE `users` (
   `googleId` varchar(255),
   `token` varchar(255),
   `avatar` longtext,
-  `isPublic` boolean
-);
-
-CREATE TABLE `roles` (
-  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(255)
+  `isPublic` bool
 );
 
 CREATE TABLE `band` (
@@ -30,7 +25,7 @@ CREATE TABLE `band` (
   `description` varchar(255),
   `biography` longtext,
   `logo` longtext,
-  `isPublic` boolean
+  `isPublic` bool
 );
 
 CREATE TABLE `band_member` (
@@ -43,7 +38,7 @@ CREATE TABLE `band_member` (
 CREATE TABLE `song` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(255),
-  `band_id` number,
+  `band_id` integer,
   `artist` varchar(255),
   `duration` integer,
   `link` varchar(255),
@@ -52,16 +47,17 @@ CREATE TABLE `song` (
 
 CREATE TABLE `setlist` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
-  `name` string,
+  `name` varchar(255),
   `band_id` integer,
   `template` bool,
-  `isPublic` boolean
+  `isPublic` bool
 );
 
 CREATE TABLE `setlist_song` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `setlist_id` integer,
-  `song_id` integer
+  `song_id` integer,
+  `position` integer
 );
 
 CREATE TABLE `event` (
@@ -74,7 +70,7 @@ CREATE TABLE `event` (
   `address` varchar(255),
   `datetime` datetime,
   `poster` longtext,
-  `isPublic` boolean
+  `isPublic` bool
 );
 
 CREATE TABLE `venue` (
@@ -108,6 +104,6 @@ ALTER TABLE `event` ADD FOREIGN KEY (`setlist_id`) REFERENCES `setlist` (`id`);
 
 ALTER TABLE `event` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
 
-ALTER TABLE `member_event` ADD FOREIGN KEY (`member_id`) REFERENCES `band_member` (`id`);
+ALTER TABLE `member_event` ADD FOREIGN KEY (`member_id`) REFERENCES `users` (`id`);
 
 ALTER TABLE `member_event` ADD FOREIGN KEY (`event_id`) REFERENCES `event` (`id`);

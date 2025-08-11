@@ -1,51 +1,50 @@
-import { Request, Response } from "express"
 import sharp from 'sharp'
+import { Roles, User } from "../../../models/src"
+import { Request, Response } from "express"
 
-export enum Roles {
-    admin = 'admin',
-    owner = 'owner',
-    editor = 'editor',
-    viewer = 'viewer'
-}
-
-export function hasMatchingRole(arr1: Roles[], arr2: Roles[]): boolean {
-    const set2 = new Set(arr2)
-
-    for (const element of arr1) {
-        if (set2.has(element)) {
-            return true
-        }
-    }
-
-    return false
-}
-
-export const authorizationMiddleware = (role: Roles | Roles[]) => (req: Request, res: Response, next: any) => {
-    const userRoles = (req.user as any).roles
-    if (!userRoles) {
+export const canViewBand = (req: Request, res: Response, next: any) => {
+    if (getBandRole(req) !== Roles.unauthorized) {
+        next()
+    } else {
         res.status(401).json('Unauthorized')
     }
-    else {
-        if (userRoles.includes(Roles.admin)) {
-            next()
-        }
-        else {
-            if (Array.isArray(role)) {
-                if (hasMatchingRole((req.user as any).roles, role)) {
-                    next()
-                } else {
-                    res.status(401).json('Unauthorized')
-                }
-            }
-            else {
-                if ((req.user as any).roles?.includes(role)) {
-                    next()
-                } else {
-                    res.status(401).json('Unauthorized')
-                }
-            }
-        }
+}
+
+export const canEditBandDetails = (req: Request, res: Response, next: any) => {
+    if ([Roles.owner, Roles.editor_detail].includes(getBandRole(req))) {
+        next()
+    } else {
+        res.status(401).json('Unauthorized')
     }
+}
+
+export const canEditBandSetlist = (req: Request, res: Response, next: any) => {
+    if ([Roles.owner, Roles.editor_setlist].includes(getBandRole(req))) {
+        next()
+    } else {
+        res.status(401).json('Unauthorized')
+    }
+}
+
+export const canEditBandEvents = (req: Request, res: Response, next: any) => {
+    if ([Roles.owner, Roles.editor_event].includes(getBandRole(req))) {
+        next()
+    } else {
+        res.status(401).json('Unauthorized')
+    }
+}
+
+export const canEditBandMember = (req: Request, res: Response, next: any) => {
+    if ([Roles.owner, Roles.editor_member].includes(getBandRole(req))) {
+        next()
+    } else {
+        res.status(401).json('Unauthorized')
+    }
+}
+
+function getBandRole(req: Request): Roles {
+    console.log(+req.params.id)
+    return (req.user as User).bands?.find(b => b.band_id === +req.params.id)?.role || Roles.unauthorized;
 }
 
 export function getCurrentDateTimeInItaly(): string {

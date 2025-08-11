@@ -69,7 +69,7 @@ passport.use(
             const creation_date = new Date();
             const last_login_date = new Date();
 
-            const rows = await db.query("SELECT * FROM users WHERE googleId = ?", [googleId])
+            const rows = await userApi.getUserInfo(email)
 
             if (rows.length > 0) {
                 // Update last login and token
@@ -93,6 +93,8 @@ passport.use(
                     token,
                     avatar
                 ]);
+
+                profile.id = result
 
                 return done(null, profile);
             }
@@ -131,7 +133,7 @@ app.get("/api/checkauthentication", express.json(), async (req: Request, res: Re
             user.avatar = user.photos[0].value
         }
         // console.log(req.user)
-        res.json(req.user)
+        res.json(user)
     }
     else {
         res.json(0)
@@ -144,8 +146,7 @@ app.get("/auth/google",
     passport.authenticate('google', { scope: ['profile', 'email'] })
 )
 
-app.get(
-    '/auth/google/callback',
+app.get('/auth/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/auth/failure',
         session: true,
