@@ -33,17 +33,11 @@ export interface Role extends Repository {
   name: string
 }
 
-export interface MemberRole extends Repository {
-  id: number
-  member_id: number
-  role_id: number
-  band_id: number
-}
-
 export interface Band extends Repository {
   id?: number
   name?: string
   description?: string
+  biography?: string
   logo?: string
   isPublic?: boolean
   setlist?: [Setlist]
@@ -62,15 +56,18 @@ export interface BandMember extends Repository {
 export interface Song extends Repository {
   id: number
   name: string
+  band_id: string
   artist: string
   duration: number
   link: string
+  removed: boolean
 }
 
 export interface Setlist extends Repository {
   id: number
+  name: string
   band_id: number
-  primary: boolean
+  template: boolean
   isPublic: boolean
   songs: [Song]
 }

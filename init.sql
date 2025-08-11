@@ -15,7 +15,8 @@ CREATE TABLE `users` (
   `status` varchar(255),
   `googleId` varchar(255),
   `token` varchar(255),
-  `avatar` longtext
+  `avatar` longtext,
+  `isPublic` boolean
 );
 
 CREATE TABLE `roles` (
@@ -23,19 +24,13 @@ CREATE TABLE `roles` (
   `name` varchar(255)
 );
 
-CREATE TABLE `member_role` (
-  `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
-  `member_id` integer,
-  `role_id` integer,
-  `band_id` integer
-);
-
 CREATE TABLE `band` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(255),
   `description` varchar(255),
-  `logo`longtext
-  `isPublic` bool
+  `biography` longtext,
+  `logo` longtext,
+  `isPublic` boolean
 );
 
 CREATE TABLE `band_member` (
@@ -48,16 +43,19 @@ CREATE TABLE `band_member` (
 CREATE TABLE `song` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(255),
+  `band_id` number,
   `artist` varchar(255),
   `duration` integer,
-  `link` varchar(255)
+  `link` varchar(255),
+  `removed` bool
 );
 
 CREATE TABLE `setlist` (
   `id` integer UNIQUE PRIMARY KEY AUTO_INCREMENT,
+  `name` string,
   `band_id` integer,
-  `primary` bool
-  `isPublic` bool
+  `template` bool,
+  `isPublic` boolean
 );
 
 CREATE TABLE `setlist_song` (
@@ -75,7 +73,8 @@ CREATE TABLE `event` (
   `vanue_name` varchar(255),
   `address` varchar(255),
   `datetime` datetime,
-  `poster` longtext
+  `poster` longtext,
+  `isPublic` boolean
 );
 
 CREATE TABLE `venue` (
@@ -91,13 +90,11 @@ CREATE TABLE `member_event` (
   `event_id` integer
 );
 
-ALTER TABLE `member_role` ADD FOREIGN KEY (`member_id`) REFERENCES `band_member` (`id`);
-
-ALTER TABLE `member_role` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
-
 ALTER TABLE `band_member` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 ALTER TABLE `band_member` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
+
+ALTER TABLE `song` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
 
 ALTER TABLE `setlist` ADD FOREIGN KEY (`band_id`) REFERENCES `band` (`id`);
 

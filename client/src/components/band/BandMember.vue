@@ -6,6 +6,8 @@ import { UserStore } from '@/stores'
 const userStore = UserStore()
 const axios: Axios = new Axios()
 
+const props = defineProps(['band_id'])
+
 </script>
 
 <template>

@@ -64,23 +64,7 @@ const router = createRouter({
       path: "/mybands/:band_id",
       name: "Band",
       component: () => import('@/views/mybands/Band.vue'),
-      children: [
-        {
-          path: 'setlist',
-          name: 'Setlist',
-          component: () => import('@/views/mybands/Setlist.vue')
-        },
-        {
-          path: 'bandmember',
-          name: 'Band Member',
-          component: () => import('@/views/mybands/BandMember.vue')
-        },
-        {
-          path: 'event',
-          name: 'event',
-          component: () => import('@/views/mybands/Events.vue')
-        }
-      ]
+      props: true
     }
   ]
 })

@@ -38,8 +38,11 @@ onMounted(async () => {
         <v-container>
             <v-row justify="center">
                 <v-col sm="8" cols="12" lg="4" v-for="band in myBands" v-if="myBands.length">
-                    <RouterLink :to="`/band/mybands/${band.id}`">
-                        <v-card :title="band.name" :text="band.description">
+                    <RouterLink :to="`/mybands/${band.id}`">
+                        <v-card>
+                            <v-img v-if="band.logo" height="200px" :src="band.logo"></v-img>
+                            <v-card-title>{{ band.name }}</v-card-title>
+                            <v-card-text>{{ band.description }}</v-card-text>
                         </v-card>
                     </RouterLink>
                 </v-col>

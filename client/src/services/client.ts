@@ -190,5 +190,22 @@ export default class Axios {
     async CreateBand(band: Band): Promise<number> {
         return await this.post<Band>("/band/myband", band)
     }
+
+    async GetBandDetails(band_id: number): Promise<Band> {
+        return await this.getSingle<Band>(`/band/myband/${band_id}/details`)
+    }
+
+    async UpdateBandDetails(band: Band): Promise<number> {
+        return await this.put<Band>("/band/myband", band)
+    }
+
+    async UpdateBandLogo(formData: FormData, band_id: number): Promise<string> {
+        const response: AxiosResponse<string> = await this.client.put(`/band/myband/${band_id}/logo`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return response.data
+    }
 }
 
