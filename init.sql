@@ -40,8 +40,10 @@ CREATE TABLE `song` (
   `name` varchar(255),
   `band_id` integer,
   `artist` varchar(255),
+  `album` varchar(255),
   `duration` integer,
   `link` varchar(255),
+  `deezer_id` integer
   `removed` bool
 );
 

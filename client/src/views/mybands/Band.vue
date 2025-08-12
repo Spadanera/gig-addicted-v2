@@ -24,13 +24,14 @@ function setBand(b: Band) {
 
 <template>
     <div>
-        <v-toolbar>
-            <v-img style="max-width: 50px; max-height: 50px; margin-left: 6px;" v-if="band.logo"
-                :src="band.logo"></v-img>
-            <v-toolbar-title :text="band.name"></v-toolbar-title>
+        <v-toolbar density="compact">
             <RouterLink to="/mybands">
-                <v-btn icon="mdi-close" variant="plain"></v-btn>
+                <v-btn variant="plain" text="TORNA ALLA LISTA"></v-btn>
             </RouterLink>
+            <v-spacer></v-spacer>
+            <v-img style="max-width: 30px; max-height: 30px; margin-left: 6px;" v-if="band.logo"
+                :src="band.logo"></v-img>
+            <v-toolbar-title style="flex: none; margin-right: 26px; font-size: medium; margin-left: 10px;" :text="band.name"></v-toolbar-title>
         </v-toolbar>
         <v-tabs grow v-model="tab" color="secondary">
             <v-tab value="details">Dettagli</v-tab>

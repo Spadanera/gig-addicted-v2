@@ -37,6 +37,9 @@ export const validUrlRule = (value: any) => {
 }
 
 export const positiveIntegerRule = (value: any) => {
+    if (value === undefined) {
+        return true
+    }
     if (isNaN(parseFloat(value)) || !Number.isInteger(Number(value)) || Number(value) <= 0) {
         return 'Inserire un numero intero positivo';
     }

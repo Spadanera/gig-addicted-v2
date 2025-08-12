@@ -13,29 +13,31 @@ class Api {
     async insertSongIntoRepertoire(song: Song): Promise<number> {
         return await db.executeInsert(`
             INSERT INTO song
-            (name, band_id, artist, duration, link)
+            (name, band_id, artist, album, duration, link, deezer_id)
             VALUES
-            (?,?,?,?,?)`,
-            [song.name, song.band_id, song.artist, song.duration, song.link]
+            (?,?,?,?,?,?,?)`,
+            [song.name, song.band_id, song.artist, song.album, song.duration, song.link, song.deezer_id]
         )
     }
 
     async editSongInRepertorire(song: Song): Promise<number> {
-        return await db.executeUpdate('UPDATE song SET name = ?, artist = ?, duration = ?, link = ?, removed = ? WHERE id = ? AND band_id = ?',
-            [song.name, song.artist, song.duration, song.link, song.removed, song.id, song.band_id])
+        return await db.executeUpdate(
+            `UPDATE song SET name = ?, artist = ?, album = ?, duration = ?, link = ?, deezer_id = ?, removed = ? WHERE id = ? AND band_id = ?`,
+            [song.name, song.artist, song.album, song.duration, song.link, song.deezer_id, song.removed, song.id, song.band_id])
     }
 
     async getSetlistTemplates(band_id: number): Promise<Setlist[]> {
         return await db.query<Setlist>(`
-            SELECT id, name,
+            SELECT id, name, band_id,
             (
                 SELECT JSON_ARRAYAGG(JSON_OBJECT(
                                     'id', setlist_song.id,
+                                    'name', song.name,
                                     'song_id', setlist_song.song_id,
+                                    'deezer_id', song.deezer_id,
                                     'position', setlist_song.position,
-                                    'name', song.name,
-                                    'name', song.name,
                                     'artist', song.artist,
+                                    'album', song.album,
                                     'duration', song.duration,
                                     'link', song.link
                                 ))  
@@ -48,48 +50,6 @@ class Api {
             `,
             [band_id])
     }
-
-    // async insertSongIntoSetlist(song: Song, setlist_id: number): Promise<number> {
-    //     const connection = await db.getConnection()
-    //     let result_id: number
-
-    //     try {
-    //         await connection.beginTransaction();
-
-    //         const [result] = await connection.execute<ResultSetHeader>(
-    //             `INSERT INTO song
-    //             (name, band_id, artist, duration, link)
-    //             VALUES
-    //             (?,?,?,?,?)`,
-    //             [song.name, song.band_id, song.artist, song.duration, song.link]
-    //         )
-
-    //         result_id = result.insertId;
-
-    //         await connection.execute(
-    //             'INSERT INTO setlist_song (setlist_id, song_id) VALUES (?, ?)',
-    //             [setlist_id, result_id]
-    //         );
-
-    //         await connection.commit();
-
-    //     } catch (error) {
-    //         await connection.rollback();
-    //         console.error('Transaction failed. Rolled back.', error);
-    //         throw error
-    //     } finally {
-    //         connection.release();
-    //     }
-    //     return result_id
-    // }
-
-    // async addSongToSetlist(setlist_id: number, song_id: number): Promise<number> {
-    //     return await db.executeInsert('INSERT INTO setlist_song (setlist_id, song_id) VALUES (?,?)', [setlist_id, song_id])
-    // }
-
-    // async removeSongFromSetlist(setlist_id: number, song_id: number): Promise<number> {
-    //     return await db.executeUpdate('DELETE FROM setlist_song WHERE setlist_id = ? AND song_id = ?', [setlist_id, song_id])
-    // }
 
     async saveSetlistSong(setlist_id: number, input: SetlistInput): Promise<number> {
         const duration: number = input.addedSong.reduce((acc, s) => acc + s.duration, 0)
@@ -106,15 +66,15 @@ class Api {
                 ...input.editSong.map((s: SetlistSong) => [
                     s.position,
                     s.song_id,
-                    s.setlist_id
+                    setlist_id
                 ]),
                 ...input.addedSong.map((s: SetlistSong) => [
-                    s.setlist_id,
+                    setlist_id,
                     s.song_id,
                     s.position,
                 ]),
                 ...input.removedSong.map((s: SetlistSong) => [
-                    s.setlist_id,
+                    setlist_id,
                     s.song_id,
                 ])
             ]
@@ -133,7 +93,7 @@ class Api {
                 (name, band_id, template, duration)
                 VALUES
                 (?,?,?,?)`,
-                [setlist.name, setlist.band_id, setlist.template, setlist.songs ? setlist.songs.reduce((acc:number, s:SetlistSong) => acc + s.duration, 0) : 0]
+                [setlist.name, setlist.band_id, setlist.template, setlist.songs ? setlist.songs.reduce((acc: number, s: SetlistSong) => acc + s.duration, 0) : 0]
             )
 
             result_id = result.insertId;

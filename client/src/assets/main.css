@@ -1,6 +1,7 @@
-html, body {
-  height: 100%;
-  margin: 0;
+html,
+body {
+    height: 100%;
+    margin: 0;
 }
 
 a {
@@ -47,15 +48,11 @@ a:visited {
     display: none !important;
 }
 
-.audit-page {
-    position: fixed;
-    height: calc(100% - 64px);
-}
-
 @media screen and (max-width: 600px) {
     .show-xs {
         display: none !important;
     }
+
     .audit-page {
         width: 100% !important;
     }

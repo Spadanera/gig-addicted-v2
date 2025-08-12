@@ -140,6 +140,37 @@ app.get("/api/checkauthentication", express.json(), async (req: Request, res: Re
     }
 })
 
+app.get('/api/search-track', async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string') {
+        return res.status(400).json({ error: 'Query param "q" (search term) is required' });
+    }
+
+    try {
+        const response = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=10`);
+        const data = await response.json();
+
+        if (data && data.data && data.data.length > 0) {
+            console.log(data.data)
+            const tracks = data.data.map((track:any) => { return {
+                id: track.id,
+                name: track.title,
+                artist: track.artist.name,
+                duration: track.duration,
+                album: track.album.title,
+                link: track.link
+            }});
+            return res.json(tracks);
+        } else {
+            return res.json([]);
+        }
+    } catch (error) {
+        console.error('Error fetching from Deezer:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 app.use('public', express.json(), publicApiRouter)
 
 app.get("/auth/google",

@@ -64,8 +64,10 @@ export interface Song extends Repository {
   name: string
   band_id: string
   artist: string
+  album: string
   duration: number
   link: string
+  deezer_id: number
   removed: boolean
 }
 

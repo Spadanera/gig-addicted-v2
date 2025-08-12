@@ -239,8 +239,12 @@ export default class Axios {
         return await this.delete(`/band/myband/${setlist.band_id}/setlist/${setlist.id}`)
     }
 
-     async EditSetlist(setlist: Setlist) {
+    async EditSetlist(setlist: Setlist) {
         return await this.put(`/band/myband/${setlist.band_id}/setlist/${setlist.id}`, setlist)
+    }
+
+    async GetDeezerSongs(val: string): Promise<Song[]> {
+        return await this.get<Song>(`/search-track?q=${encodeURIComponent(val)}`)
     }
 }
 
