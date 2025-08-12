@@ -28,7 +28,6 @@ class Api {
             )
 
             result_id = result.insertId;
-            console.log(user_id)
             await connection.execute(
                 'INSERT INTO band_member (user_id, band_id, role) VALUES (?, ?, ?)',
                 [user_id, result_id, Roles.owner]

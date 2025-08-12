@@ -2,6 +2,21 @@ export function copy<T>(input: T): T {
     return JSON.parse(JSON.stringify(input))
 }
 
+export function formatSecondsToHoursMinutesSeconds(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+
+export function formatSecondsToMinutesSeconds(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 export const requiredRule = (value: any) => !!value || 'Inserire un valore'
 
 export const requireRuleArray = (value: any) => {
@@ -9,6 +24,16 @@ export const requireRuleArray = (value: any) => {
         return 'Selezionare un elemento';
     }
     return true;
+}
+
+export const validUrlRule = (value: any) => {
+    if (!value) return true
+    try {
+        new URL(value);
+        return true;
+    } catch {
+        return 'URL non valido';
+    }
 }
 
 export const positiveIntegerRule = (value: any) => {
@@ -28,13 +53,6 @@ export const fileRequiredRule = (value: any) => {
 export const emailRule = (v: any) => /.+@.+\..+/.test(v) || 'Indirizzo email non valido'
 
 export const passwordMatchRule = (comparison: any) => (v: any) => v === comparison || 'Le password devono essere uguali'
-
-export enum Roles {
-    owner = 'owner',
-    admin = 'admin',
-    editor = 'editor',
-    viewer = 'viewer'
-}
 
 export const icons = [
     "mdi-baguette",

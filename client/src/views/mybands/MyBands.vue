@@ -11,6 +11,7 @@ const axios: Axios = new Axios()
 const myBands = ref<Band[]>([])
 const createDialog = ref<boolean>(false)
 const dialogBand = ref<Band>(null)
+const form = ref(null)
 
 async function load() {
     myBands.value = await axios.GetMyBand()
@@ -22,9 +23,12 @@ function openCreateDialog() {
 }
 
 async function createBand() {
-    await axios.CreateBand(dialogBand.value)
-    createDialog.value = false
-    load()
+    const { valid } = await form.value?.validate()
+    if (valid) {
+        await axios.CreateBand(dialogBand.value)
+        createDialog.value = false
+        load()
+    }
 }
 
 onMounted(async () => {

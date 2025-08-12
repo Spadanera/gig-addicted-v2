@@ -43,7 +43,6 @@ export const canEditBandMember = (req: Request, res: Response, next: any) => {
 }
 
 function getBandRole(req: Request): Roles {
-    console.log(+req.params.id)
     return (req.user as User).bands?.find(b => b.band_id === +req.params.id)?.role || Roles.unauthorized;
 }
 

@@ -7,7 +7,7 @@ class Api {
     }
 
     async getRepertoire(band_id: number): Promise<Song[]> {
-        return await db.query<Song>(`SELECT * FROM song WHERE band_id = ? AND removed != TRUE`, [band_id])
+        return await db.query<Song>(`SELECT * FROM song WHERE band_id = ? AND IFNULL(removed, FALSE) != TRUE`, [band_id])
     }
 
     async insertSongIntoRepertoire(song: Song): Promise<number> {
@@ -20,8 +20,9 @@ class Api {
         )
     }
 
-    async removeSongFromRepertorire(song: Song): Promise<number> {
-        return await db.executeUpdate('UPDATE song SET removed = TRUE WHERE id = ? AND band_id = ?', [song.id, song.band_id])
+    async editSongInRepertorire(song: Song): Promise<number> {
+        return await db.executeUpdate('UPDATE song SET name = ?, artist = ?, duration = ?, link = ?, removed = ? WHERE id = ? AND band_id = ?',
+            [song.name, song.artist, song.duration, song.link, song.removed, song.id, song.band_id])
     }
 
     async getSetlistTemplates(band_id: number): Promise<Setlist[]> {
@@ -29,6 +30,10 @@ class Api {
             SELECT id, name,
             (
                 SELECT JSON_ARRAYAGG(JSON_OBJECT(
+                                    'id', setlist_song.id,
+                                    'song_id', setlist_song.song_id,
+                                    'position', setlist_song.position,
+                                    'name', song.name,
                                     'name', song.name,
                                     'artist', song.artist,
                                     'duration', song.duration,
@@ -36,7 +41,7 @@ class Api {
                                 ))  
                 FROM song
                 INNER JOIN setlist_song ON song.id = setlist_song.song_id 
-                WHERE setlist_song.setlist_id = setlist.id AND removed != TRUE
+                WHERE setlist_song.setlist_id = setlist.id AND IFNULL(removed, FALSE) != TRUE
             ) as songs
             FROM setlist
             WHERE setlist.band_id = ? AND template = 1
@@ -86,14 +91,18 @@ class Api {
     //     return await db.executeUpdate('DELETE FROM setlist_song WHERE setlist_id = ? AND song_id = ?', [setlist_id, song_id])
     // }
 
-    async saveSetlistSong(input: SetlistInput): Promise<number> {
+    async saveSetlistSong(setlist_id: number, input: SetlistInput): Promise<number> {
+        const duration: number = input.addedSong.reduce((acc, s) => acc + s.duration, 0)
+            + input.editSong.reduce((acc, s) => acc + s.duration, 0)
         return await db.executeTransaction(
             [
+                'UPDATE setlist SET duration = ? WHERE id = ?',
                 ...input.editSong.map((s: SetlistSong) => 'UPDATE setlist_song SET position = ? WHERE song_id = ? AND setlist_id = ?'),
                 ...input.addedSong.map((s: SetlistSong) => 'INSERT INTO setlist_song (setlist_id, song_id, position) VALUES (?, ?, ?)'),
                 ...input.removedSong.map((s: SetlistSong) => 'DELETE FROM setlist_song WHERE setlist_id = ? AND song_id = ?')
             ],
             [
+                [duration, setlist_id],
                 ...input.editSong.map((s: SetlistSong) => [
                     s.position,
                     s.song_id,
@@ -121,10 +130,10 @@ class Api {
 
             const [result] = await connection.execute<ResultSetHeader>(
                 `INSERT INTO setlist
-                (name, band_id, template)
+                (name, band_id, template, duration)
                 VALUES
-                (?,?,?)`,
-                [setlist.name, setlist.band_id, setlist.template,]
+                (?,?,?,?)`,
+                [setlist.name, setlist.band_id, setlist.template, setlist.songs ? setlist.songs.reduce((acc:number, s:SetlistSong) => acc + s.duration, 0) : 0]
             )
 
             result_id = result.insertId;

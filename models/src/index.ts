@@ -73,9 +73,10 @@ export interface Setlist extends Repository {
   id: number
   name: string
   band_id: number
-  template: boolean
-  isPublic: boolean
-  songs: [SetlistSong]
+  template?: boolean
+  duration?: number
+  isPublic?: boolean
+  songs?: SetlistSong[]
 }
 
 export interface SetlistSong extends Song {

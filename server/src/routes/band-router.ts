@@ -95,7 +95,7 @@ bandRouter.post("/myband/:id/song", canEditBandSetlist, async (req: Request, res
 
 bandRouter.put("/myband/:id/song", canEditBandSetlist, async (req: Request, res: Response) => {
     try {
-        const result = await setlistApi.removeSongFromRepertorire(req.body)
+        const result = await setlistApi.editSongInRepertorire(req.body)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)
@@ -115,7 +115,7 @@ bandRouter.get("/myband/:id/setlist", canViewBand, async (req: Request, res: Res
 
 bandRouter.put("/myband/:id/setlist/:setlistid/song", canEditBandSetlist, async (req: Request, res: Response) => {
     try {
-        const result = await setlistApi.saveSetlistSong(req.body)
+        const result = await setlistApi.saveSetlistSong(+req.params.setlistid, req.body)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)

@@ -23,15 +23,16 @@ function setBand(b: Band) {
 </script>
 
 <template>
-    <main>
+    <div>
         <v-toolbar>
-            <v-img style="max-width: 50px; max-height: 50px; margin-left: 6px;" v-if="band.logo" :src="band.logo"></v-img>
+            <v-img style="max-width: 50px; max-height: 50px; margin-left: 6px;" v-if="band.logo"
+                :src="band.logo"></v-img>
             <v-toolbar-title :text="band.name"></v-toolbar-title>
             <RouterLink to="/mybands">
                 <v-btn icon="mdi-close" variant="plain"></v-btn>
             </RouterLink>
         </v-toolbar>
-        <v-tabs grow v-model="tab">
+        <v-tabs grow v-model="tab" color="secondary">
             <v-tab value="details">Dettagli</v-tab>
             <v-tab value="setlist">Repertorio</v-tab>
             <v-tab value="event">Eventi</v-tab>
@@ -51,5 +52,5 @@ function setBand(b: Band) {
                 <BandMember :band_id="props.band_id"></BandMember>
             </v-tabs-window-item>
         </v-tabs-window>
-    </main>
+    </div>
 </template>

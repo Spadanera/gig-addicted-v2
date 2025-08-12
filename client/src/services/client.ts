@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse, type AxiosRequestConfig, type RawAxiosRequestHeaders, type AxiosInstance, type AxiosProgressEvent } from 'axios'
-import { type Repository, type User, type Event, type Invitation, type Band, type Song, type Setlist, type SetlistInput } from "../../../models/src"
+import { type Repository, type User, type Event, type Invitation, type Band, type Song, type Setlist, type SetlistInput, type SetlistSong } from "../../../models/src"
 import router from '@/router'
 import { UserStore, SnackbarStore, ProgressStore } from '@/stores'
 import type { StoreDefinition } from 'pinia'
@@ -212,19 +212,19 @@ export default class Axios {
 
     // Setlist Method
     async GetRepertoire(band_id: number) {
-        return await this.get<Song>(`/band/myband/${band_id}/repertoire`)
+        return await this.get<SetlistSong>(`/band/myband/${band_id}/repertoire`)
     }
 
     async InsertSongIntoRepertoire(song: Song) {
         return await this.post(`/band/myband/${song.band_id}/song`, song)
     }
 
-    async RemoveSongFromRepertorire(song: Song) {
-        return await this.post(`/band/myband/${song.band_id}/song`, song)
+    async EditSongInRepertorire(song: Song) {
+        return await this.put(`/band/myband/${song.band_id}/song`, song)
     }
 
-    async GetSetlistTemplates(song: Song) {
-        return await this.get<Setlist>(`/band/myband/${song.band_id}/setlist`)
+    async GetSetlistTemplates(band_id: number) {
+        return await this.get<Setlist>(`/band/myband/${band_id}/setlist`)
     }
 
     async SaveSetlistSong(input: SetlistInput, band_id: number, setlist_id: number) {

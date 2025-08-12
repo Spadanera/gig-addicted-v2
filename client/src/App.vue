@@ -45,7 +45,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-responsive class="" max-height="100%">
+  <v-responsive class="">
     <v-app :theme="themeStore.theme">
       <v-app-bar>
         <template v-slot:prepend>

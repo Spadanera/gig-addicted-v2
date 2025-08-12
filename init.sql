@@ -50,6 +50,7 @@ CREATE TABLE `setlist` (
   `name` varchar(255),
   `band_id` integer,
   `template` bool,
+  `duration` integer,
   `isPublic` bool
 );
 
