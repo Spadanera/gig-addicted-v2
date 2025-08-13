@@ -2,6 +2,14 @@ import sharp from 'sharp'
 import { Roles, User } from "../../../models/src"
 import { Request, Response } from "express"
 
+export const isBandOwner = (req: Request, res: Response, next: any) => {
+    if ([Roles.owner].includes(getBandRole(req))) {
+        next()
+    } else {
+        res.status(401).json('Unauthorized')
+    }
+}
+
 export const canViewBand = (req: Request, res: Response, next: any) => {
     if (getBandRole(req) !== Roles.unauthorized) {
         next()

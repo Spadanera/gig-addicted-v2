@@ -1,7 +1,7 @@
 import router, { Router, Request, Response } from "express"
 import bandApi from "../api/band"
 import setlistApi from "../api/setlist"
-import { canViewBand, canEditBandDetails, fileToBase64String, canEditBandSetlist } from "../utils/helper"
+import { canViewBand, canEditBandDetails, fileToBase64String, canEditBandSetlist, isBandOwner } from "../utils/helper"
 import multer from 'multer'
 
 const bandRouter: Router = router()
@@ -29,6 +29,16 @@ bandRouter.post("/myband", async (req: Request, res: Response) => {
             role: 'owner'
         })
         req.user = user
+        res.status(200).json(result)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json(error)
+    }
+})
+
+bandRouter.delete("/myband/:id", isBandOwner, async (req: Request, res: Response) => {
+    try {
+        const result = await bandApi.deleteBand(+req.params.id)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)

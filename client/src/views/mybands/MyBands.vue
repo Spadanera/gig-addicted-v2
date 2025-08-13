@@ -46,7 +46,8 @@ onMounted(async () => {
                         <v-card>
                             <v-img v-if="band.logo" height="200px" :src="band.logo"></v-img>
                             <v-card-title>{{ band.name }}</v-card-title>
-                            <v-card-text>{{ band.description }}</v-card-text>
+                            <v-card-subtitle>{{ band.description }}</v-card-subtitle>
+                            <v-card-actions></v-card-actions>
                         </v-card>
                     </RouterLink>
                 </v-col>

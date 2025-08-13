@@ -238,7 +238,7 @@ onMounted(() => {
         <v-row>
             <transition name="slide">
                 <v-col v-show="showSetlist || $vuetify.display.smAndUp" id="setlist" :cols="12" :sm="3"
-                    style="padding-right: 0; position: relative;  z-index: 10;">
+                    style="padding-right: 0; position: relative;  z-index: 10; border-right: 0.5px solid #E4E4E4;">
                     <v-list lines="two" style="height: calc(100vh - 160px); padding-top: 0; padding-bottom: 0;"
                         v-model:selected="selectedSetlistId">
                         <v-list-item @click="toggleSetlist" :key="setlists[0].id" :value="setlists[0].id">
@@ -281,7 +281,6 @@ onMounted(() => {
                     </div>
                 </v-col>
             </transition>
-            <v-divider vertical v-if="showSetlist || $vuetify.display.smAndUp"></v-divider>
             <v-col :sm="$vuetify.display.smAndUp ? 9 : 12" id="songs" style="padding-left: 0;" cols="12">
                 <div v-if="selectedSetlist.songs && selectedSetlist.songs.length">
                     <SongDataTable :repertoire="selectedSetlist.id === 0" :add-mode="false" @updatesongs="updateSong"

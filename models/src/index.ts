@@ -46,8 +46,9 @@ export interface Band extends Repository {
   biography?: string
   logo?: string
   isPublic?: boolean
-  repertoire?: [Song],
-  setlist?: [Setlist],
+  deleted: boolean
+  repertoire?: [Song]
+  setlist?: [Setlist]
   members?: [BandMember]
   songs?: [Song]
 }

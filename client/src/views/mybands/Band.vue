@@ -55,7 +55,7 @@ function toogleShowSetlist() {
             </v-tabs>
         </div>
 
-        <v-tabs-window v-model="tab">
+        <v-tabs-window v-model="tab" style="border-top: 0.5px solid #E4E4E4;">
             <v-tabs-window-item value="details">
                 <BandDetails @band="setBand" :band_id="props.band_id"></BandDetails>
             </v-tabs-window-item>

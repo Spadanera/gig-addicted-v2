@@ -193,6 +193,10 @@ export default class Axios {
         return result
     }
 
+    async DeleteBand(band_id: number): Promise<number> {
+        return await this.delete(`/band/myband/${band_id}`)
+    }
+
     async GetBandDetails(band_id: number): Promise<Band> {
         return await this.getSingle<Band>(`/band/myband/${band_id}/details`)
     }

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Axios from '@/services/client'
-import { UserStore, SnackbarStore } from '@/stores'
+import { SnackbarStore } from '@/stores'
 import { requiredRule, fileRequiredRule, copy } from '@/services/utils';
 import { type Band } from '../../../../models/src'
+import { useRouter } from 'vue-router'
 
 const props = defineProps(['band_id'])
 const emit = defineEmits(['band'])
 
-const userStore = UserStore()
+const router = useRouter()
 const snackbarStore = SnackbarStore()
 const axios: Axios = new Axios()
 const band = ref<Band>({} as Band)
@@ -19,6 +20,7 @@ const formBand = ref(null)
 const formLogo = ref(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const files = ref()
+const confirmDelete = ref(false)
 
 async function load() {
     band.value = await axios.GetBandDetails(props.band_id)
@@ -66,6 +68,11 @@ async function saveLogo() {
     }
 }
 
+async function deleteBand() {
+    await axios.DeleteBand(props.band_id)
+    router.push({ name: 'My Bands' })
+}
+
 onMounted(async () => {
     await load()
 })
@@ -92,6 +99,7 @@ onMounted(async () => {
                         <v-card-actions>
                             <v-btn @click="startEditing">Modifica</v-btn>
                             <v-btn @click="startEditingLogo">Carica Logo</v-btn>
+                            <v-btn color="danger" @click="confirmDelete = true">Elimina Band</v-btn>
                         </v-card-actions>
                     </v-card>
                     <v-card v-else-if="editing">
@@ -138,5 +146,10 @@ onMounted(async () => {
                 </v-col>
             </v-row>
         </v-container>
+        <Confirm v-model="confirmDelete">
+            <template v-slot:action>
+                <v-btn text="Conferma" variant="plain" @click="deleteBand"></v-btn>
+            </template>
+        </Confirm>
     </main>
 </template>

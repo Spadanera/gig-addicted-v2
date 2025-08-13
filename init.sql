@@ -25,7 +25,8 @@ CREATE TABLE `band` (
   `description` varchar(255),
   `biography` longtext,
   `logo` longtext,
-  `isPublic` bool
+  `isPublic` bool,
+  `deleted` bool
 );
 
 CREATE TABLE `band_member` (

@@ -12,7 +12,7 @@ class Api {
     }
 
     async getMyBands(user_id: number): Promise<Band[]> {
-        return await db.query<Band>(`SELECT * FROM band WHERE id IN (SELECT band_id FROM band_member WHERE user_id = ?)`, [user_id])
+        return await db.query<Band>(`SELECT * FROM band WHERE id IN (SELECT band_id FROM band_member WHERE user_id = ? AND IFNULL(deleted, FALSE) != TRUE)`, [user_id])
     }
 
     async createBand(band: Band, user_id: number): Promise<number> {
@@ -43,6 +43,10 @@ class Api {
             connection.release();
         }
         return result_id
+    }
+
+    async deleteBand(band_id: number) {
+        return await db.executeUpdate(`UPDATE band SET deleted = TRUE WHERE id = ?`, [band_id])
     }
 
     async getBandDetails(band_id: number): Promise<Band> {
