@@ -6,7 +6,8 @@ import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMi
 import SongDataTable from './SongDataTable.vue'
 import debounce from 'lodash.debounce';
 
-const props = defineProps(['band_id'])
+const props = defineProps(['band_id', 'showSetlist'])
+const emit = defineEmits(['tooglesetlist'])
 
 const axios: Axios = new Axios()
 const setlists = ref<Setlist[]>([{
@@ -33,10 +34,9 @@ const loading = ref(false)
 const autocompleteRef = ref()
 const sheet = ref<boolean>(false)
 const debouncedFetch = debounce(onSearch, 400);
-const orderEdited = ref<boolean>(false)
 
 watch(search, (val) => {
-  debouncedFetch(val);
+    debouncedFetch(val);
 });
 
 const selectedSetlist = computed(() =>
@@ -47,9 +47,15 @@ const editing = computed(() =>
     (selectedSetlist.value.songs?.filter(s => s.id === undefined || s.removed).length || selectedSetlist.value.orderEdited) && selectedSetlist.value.id !== 0
 )
 
-const availableSong = computed(() => setlists.value[0].songs.filter(song1 => 
-  !selectedSetlist.value.songs.some(song2 => song2.song_id === song1.id)
+const availableSong = computed(() => setlists.value[0].songs.filter(song1 =>
+    !selectedSetlist.value.songs.some(song2 => song2.song_id === song1.id)
 ))
+
+function toggleSetlist() {
+    if (props.showSetlist) {
+        emit('tooglesetlist')
+    }
+}
 
 async function onSearch(val: string) {
     if (!val || val.length < 3) {
@@ -119,7 +125,7 @@ async function removeSong() {
 
 function toggleSongFromSetlist(song: SetlistSong) {
     console.log(song)
-    const setlist = setlists.value.find((s:Setlist) => s.id === song.setlist_id)
+    const setlist = setlists.value.find((s: Setlist) => s.id === song.setlist_id)
     const s = setlist.songs.find((s: SetlistSong) => s.id === song.id)
     s.removed = !s.removed
     setlist.songs = updatePositions(setlist.songs)
@@ -205,7 +211,7 @@ function addSongToSetlist(songsToAdd: number[]) {
 }
 
 function updateSong(songs: SetlistSong[]) {
-    const setlist = setlists.value.find((s:Setlist) => s.id === selectedSetlistId.value[0])
+    const setlist = setlists.value.find((s: Setlist) => s.id === selectedSetlistId.value[0])
     setlist.songs = updatePositions(songs)
     setlist.orderEdited = true
 }
@@ -230,47 +236,53 @@ onMounted(() => {
 <template>
     <div>
         <v-row>
-            <v-col cols="12" sm="3" style="padding-right: 0; position: relative;">
-                <v-list lines="two" style="height: calc(100vh - 160px); padding-top: 0; padding-bottom: 0;"
-                    v-model:selected="selectedSetlistId">
-                    <v-list-item :key="setlists[0].id" :value="setlists[0].id">
-                        <v-list-item-title>
-                            {{ setlists[0].name }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle>
-                            Durata Totale: {{formatSecondsToHoursMinutesSeconds(setlists[0].songs.reduce((acc, s) => acc
-                                +
+            <transition name="slide">
+                <v-col v-show="showSetlist || $vuetify.display.smAndUp" id="setlist" :cols="12" :sm="3"
+                    style="padding-right: 0; position: relative;  z-index: 10;">
+                    <v-list lines="two" style="height: calc(100vh - 160px); padding-top: 0; padding-bottom: 0;"
+                        v-model:selected="selectedSetlistId">
+                        <v-list-item @click="toggleSetlist" :key="setlists[0].id" :value="setlists[0].id">
+                            <v-list-item-title>
+                                {{ setlists[0].name }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>
+                                Durata Totale: {{formatSecondsToHoursMinutesSeconds(setlists[0].songs.reduce((acc, s) =>
+                                    acc
+                                    +
                                 s.duration, 0))}}
-                        </v-list-item-subtitle>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-subheader>
-                        SCALETTE
-                        <v-btn style="margin-bottom: 4px;" small class="ml-auto" variant="text" icon="mdi-plus"
-                            @click.stop="upsertSetlistDialog()"></v-btn>
-                    </v-list-subheader>
-                    <v-list-item v-for="setlist in setlists.slice(1)" :key="setlist.id" :value="setlist.id">
-                        <v-list-item-title>
-                            {{ setlist.name }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle v-if="setlist.songs && setlist.songs.length">
-                            Durata Totale: {{formatSecondsToHoursMinutesSeconds(setlist.songs.reduce((acc, s) => acc +
+                            </v-list-item-subtitle>
+                        </v-list-item>
+                        <v-divider></v-divider>
+                        <v-list-subheader>
+                            SCALETTE
+                            <v-btn style="margin-bottom: 4px;" small class="ml-auto" variant="text" icon="mdi-plus"
+                                @click.stop="upsertSetlistDialog()"></v-btn>
+                        </v-list-subheader>
+                        <v-list-item @click="toggleSetlist" v-for="setlist in setlists.slice(1)" :key="setlist.id" :value="setlist.id">
+                            <v-list-item-title>
+                                {{ setlist.name }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle v-if="setlist.songs && setlist.songs.length">
+                                Durata Totale: {{formatSecondsToHoursMinutesSeconds(setlist.songs.reduce((acc, s) => acc
+                                    +
                                 s.duration, 0))}}
-                        </v-list-item-subtitle>
-                        <template v-if="selectedSetlistId[0] === setlist.id" v-slot:append>
-                            <v-btn @click.stop="confirmDeleteSetlist = true" icon="mdi-delete" variant="text"></v-btn>
-                        </template>
-                    </v-list-item>
-                </v-list>
-                <div class="floating-save bg-primary" v-if="editing">
-                    <v-btn style="width: 50%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
-                        variant="plain"></v-btn>
-                    <v-btn style="width: 50%; height: 100%;" text="ANNULLA" @click="loadSetlist"
-                        variant="plain"></v-btn>
-                </div>
-            </v-col>
-            <v-divider vertical></v-divider>
-            <v-col style="padding-left: 0;" cols="12" sm="9">
+                            </v-list-item-subtitle>
+                            <template v-if="selectedSetlistId[0] === setlist.id" v-slot:append>
+                                <v-btn @click.stop="confirmDeleteSetlist = true" icon="mdi-delete"
+                                    variant="text"></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                    <div class="floating-save bg-primary" v-if="editing">
+                        <v-btn style="width: 50%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
+                            variant="plain"></v-btn>
+                        <v-btn style="width: 50%; height: 100%;" text="ANNULLA" @click="loadSetlist"
+                            variant="plain"></v-btn>
+                    </div>
+                </v-col>
+            </transition>
+            <v-divider vertical v-if="showSetlist || $vuetify.display.smAndUp"></v-divider>
+            <v-col :sm="$vuetify.display.smAndUp ? 9 : 12" id="songs" style="padding-left: 0;" cols="12">
                 <div v-if="selectedSetlist.songs && selectedSetlist.songs.length">
                     <SongDataTable :repertoire="selectedSetlist.id === 0" :add-mode="false" @updatesongs="updateSong"
                         :songs="selectedSetlist.songs" @editsong="upsertSongDialog" @togglesong="toggleSongFromSetlist">
@@ -285,9 +297,8 @@ onMounted(() => {
             <v-card :title="dialogSong.id ? 'Aggiungi Canzone' : 'Modifica Canzone'">
                 <v-card-text>
                     <v-autocomplete autocomplete="off" ref="autocompleteRef" v-model="selectedTrack"
-                         v-model:search="search" :items="tracks" :loading="loading"
-                        label="Cerca brano" item-title="name" item-value="id" hide-no-data hide-selected
-                        @update:model-value="onSelect" clearable>
+                        v-model:search="search" :items="tracks" :loading="loading" label="Cerca brano" item-title="name"
+                        item-value="id" hide-no-data hide-selected @update:model-value="onSelect" clearable>
                         <template v-slot:item="{ props, item }">
                             <v-list-item v-bind="props">
                                 <v-list-item-subtitle>
@@ -338,11 +349,11 @@ onMounted(() => {
         </Confirm>
         <v-fab v-if="selectedSetlist?.id === 0" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
             location="bottom right" @click="upsertSongDialog()"></v-fab>
-            <v-fab v-if="selectedSetlist?.id !== 0" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
+        <v-fab v-if="selectedSetlist?.id !== 0" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
             location="bottom right" @click="sheet = true"></v-fab>
         <v-bottom-sheet v-model="sheet">
-            <SongDataTable :repertoire="false" @add="addSongToSetlist" @cancel="sheet = false"
-                :songs="availableSong" add-mode>
+            <SongDataTable :repertoire="false" @add="addSongToSetlist" @cancel="sheet = false" :songs="availableSong"
+                add-mode>
             </SongDataTable>
         </v-bottom-sheet>
     </div>
@@ -355,5 +366,21 @@ onMounted(() => {
     left: 0;
     width: 100%;
     height: 50px;
+}
+
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.3s ease;
+}
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+.slide-enter-to {
+  transform: translateX(0);
+}
+.slide-leave-from {
+  transform: translateX(0);
+}
+.slide-leave-to {
+  transform: translateX(-100%);
 }
 </style>

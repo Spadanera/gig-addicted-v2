@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue'
 import Sortable from 'sortablejs'
 import type { SortItem } from 'vuetify/lib/components/VDataTable/composables/sort.mjs'
-import { formatSecondsToMinutesSeconds, updatePositions } from "@/services/utils"
-import { type SetlistSong } from '../../../../models/src'
+import { formatSecondsToMinutesSeconds } from "@/services/utils"
+import type { SetlistSong } from '../../../../models/src'
 
 const songHeaderRepertoire = [
     { title: 'Nome', key: 'name', sortable: true },
@@ -35,15 +35,47 @@ const emit = defineEmits(['editsong', 'add', 'cancel', 'togglesong', 'updatesong
 const sortBy = ref([{ key: 'position', order: 'asc' } as SortItem, { key: 'name', order: 'asc' } as SortItem])
 const songSearch = ref<string | null>(null)
 const songHeaders = ref(songHeaderRepertoire)
+const tableRef = ref<any>(null)
+let sortable: Sortable | null = null
+const selectedSongs = ref<SetlistSong[]>([])
+
+// Reactive window width
+const windowWidth = ref(window.innerWidth)
+
+function updateWindowWidth() {
+    windowWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+    window.addEventListener('resize', updateWindowWidth)
+    nextTick(initSortable)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateWindowWidth)
+    destroySortable()
+})
+
+watch(() => [props.repertoire, props.addMode, props.songs.length], async () => {
+    await nextTick()
+    destroySortable()
+    initSortable()
+
+    if (props.repertoire) {
+        songHeaders.value = songHeaderRepertoire
+        sortBy.value = [{ key: 'name', order: 'asc' } as SortItem]
+    } else if (props.addMode) {
+        songHeaders.value = songHeaderAddMmode
+        sortBy.value = [{ key: 'name', order: 'asc' } as SortItem]
+    } else {
+        songHeaders.value = songHeaderSetlist
+        sortBy.value = []
+    }
+})
 
 function getRowClass(item: SetlistSong) {
     return item.removed ? 'line-through' : ''
 }
-
-const selectedSongs = ref<SetlistSong[]>([])
-
-const tableRef = ref<any>(null)
-let sortable: Sortable | null = null
 
 function initSortable() {
     if (props.repertoire || props.addMode) return
@@ -63,7 +95,6 @@ function initSortable() {
             props.songs.splice(to, 0, moved)
 
             props.songs.forEach((song, idx) => (song.position = idx + 1))
-
             emit('updatesongs', props.songs)
         },
     })
@@ -74,45 +105,31 @@ function destroySortable() {
     sortable = null
 }
 
-onMounted(async () => {
-    await nextTick()
-    initSortable()
+// Computed headers for mobile
+const songHeadersFiltered = computed(() => {
+    return songHeaders.value.filter(h => !(h.key === 'album' && windowWidth.value < 600))
 })
-
-watch(() => [props.repertoire, props.addMode, props.songs.length], async () => {
-    await nextTick()
-    destroySortable()
-    initSortable()
-    if (props.repertoire) {
-        songHeaders.value = songHeaderRepertoire
-        sortBy.value = [{ key: 'name', order: 'asc' } as SortItem]
-    } else if (props.addMode) {
-        songHeaders.value = songHeaderAddMmode
-        sortBy.value = [{ key: 'name', order: 'asc' } as SortItem]
-    } else {
-        songHeaders.value = songHeaderSetlist
-        sortBy.value = []
-    }
-})
-
-onBeforeUnmount(destroySortable)
 </script>
 
 <template>
     <div>
-        <v-text-field v-model="songSearch" label="Cerca" prepend-inner-icon="mdi-magnify" variant="filled" hide-details
-            single-line clearable density="compact" :rounded="false" autocomplete="off"
-            v-if="props.repertoire || props.addMode" />
+        <v-text-field v-if="props.repertoire || props.addMode" v-model="songSearch" label="Cerca"
+            prepend-inner-icon="mdi-magnify" variant="filled" hide-details single-line clearable density="compact"
+            :rounded="false" autocomplete="off" />
 
-        <v-data-table ref="tableRef" v-model:sort-by="sortBy" density="comfortable" fixed-header hide-default-footer
-            :items-per-page="songs.length" :class="repertoire || addMode ? 'data-height-search' : 'data-height-no-search'" :headers="songHeaders" :items="songs"
-            :search="songSearch" :show-select="addMode" v-model="selectedSongs">
+        <v-data-table ref="tableRef" v-model:sort-by="sortBy" :headers="songHeadersFiltered" :items="songs"
+            :search="songSearch" :items-per-page="songs.length" :show-select="addMode"
+            :class="repertoire || addMode ? 'data-height-search' : 'data-height-no-search'" v-model="selectedSongs"
+            density="comfortable" fixed-header hide-default-footer>
             <template v-slot:item.position="{ item }">
-                <span v-if="!repertoire && !addMode" class="drag-handle mr-2" title="Trascina per riordinare">
-                    <v-icon>mdi-drag</v-icon>
-                </span>
-                <span :class="getRowClass(item)">{{ item.position }}</span>
+                <div class="position-cell">
+                    <span v-if="!repertoire && !addMode" class="drag-handle mr-2" title="Trascina per riordinare">
+                        <v-icon small>mdi-drag</v-icon>
+                    </span>
+                    <span :class="getRowClass(item)">{{ item.position }}</span>
+                </div>
             </template>
+
             <template v-slot:item.name="{ item }">
                 <span :class="getRowClass(item)">{{ item.name }}</span>
             </template>
@@ -121,8 +138,9 @@ onBeforeUnmount(destroySortable)
                 <span :class="getRowClass(item)">{{ item.artist }}</span>
             </template>
 
+            <!-- Fully hide Album column on mobile -->
             <template v-slot:item.album="{ item }">
-                <span :class="getRowClass(item)">{{ item.album }}</span>
+                <span v-show="windowWidth >= 600" :class="getRowClass(item)">{{ item.album }}</span>
             </template>
 
             <template v-slot:item.duration="{ item }">
@@ -145,9 +163,7 @@ onBeforeUnmount(destroySortable)
                         @click="emit('add', selectedSongs)">
                         AGGIUNGI
                     </v-btn>
-                    <v-btn variant="flat" @click="emit('cancel')">
-                        ANNULLA
-                    </v-btn>
+                    <v-btn variant="flat" @click="emit('cancel')">ANNULLA</v-btn>
                 </div>
             </template>
         </v-data-table>
@@ -174,5 +190,10 @@ onBeforeUnmount(destroySortable)
 
 .data-height-no-search {
     height: calc(100vh - 160px);
+}
+
+.position-cell {
+    display: flex;
+    align-items: center;
 }
 </style>

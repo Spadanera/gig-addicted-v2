@@ -15,9 +15,14 @@ const props = defineProps(['band_id'])
 
 const tab = ref(null)
 const band = ref<Band>({} as Band)
+const showSetlist = ref(false)
 
 function setBand(b: Band) {
     band.value = b
+}
+
+function toogleShowSetlist() {
+    showSetlist.value = !showSetlist.value
 }
 
 </script>
@@ -26,8 +31,10 @@ function setBand(b: Band) {
     <div>
         <v-toolbar density="compact">
             <RouterLink to="/mybands">
-                <v-btn variant="plain" text="TORNA ALLA LISTA"></v-btn>
+                <v-btn v-if="$vuetify.display.smAndUp" variant="plain" text="TORNA ALLA LISTA"></v-btn>
+                <v-btn v-else variant="plain" icon="mdi-arrow-left"></v-btn>
             </RouterLink>
+            <v-btn v-if="$vuetify.display.xs && tab === 'setlist'" @click="toogleShowSetlist" icon="mdi-menu"></v-btn>
             <v-spacer></v-spacer>
             <v-img style="max-width: 30px; max-height: 30px; margin-left: 6px;" v-if="band.logo"
                 :src="band.logo"></v-img>
@@ -44,7 +51,7 @@ function setBand(b: Band) {
                 <BandDetails @band="setBand" :band_id="props.band_id"></BandDetails>
             </v-tabs-window-item>
             <v-tabs-window-item value="setlist">
-                <BandSetlist :band_id="props.band_id"></BandSetlist>
+                <BandSetlist @tooglesetlist="toogleShowSetlist" :show-setlist="showSetlist" :band_id="props.band_id"></BandSetlist>
             </v-tabs-window-item>
             <v-tabs-window-item value="event">
                 <BandEvent :band_id="props.band_id"></BandEvent>
