@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import Axios from '@/services/client'
-import { UserStore } from '@/stores'
 import { type Setlist, type SetlistInput, type SetlistSong, type Song } from '../../../../models/src'
-import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToMinutesSeconds, formatSecondsToHoursMinutesSeconds, copy } from "@/services/utils"
-import type { SortItem } from 'vuetify/lib/components/VDataTable/composables/sort.mjs'
+import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMinutesSeconds, copy } from "@/services/utils"
 import SongDataTable from './SongDataTable.vue'
+import debounce from 'lodash.debounce';
 
 const props = defineProps(['band_id'])
 
@@ -33,6 +32,11 @@ const tracks = ref<Song[]>([])
 const loading = ref(false)
 const autocompleteRef = ref()
 const sheet = ref<boolean>(false)
+const debouncedFetch = debounce(onSearch, 400);
+
+watch(search, (val) => {
+  debouncedFetch(val);
+});
 
 const selectedSetlist = computed(() =>
     setlists.value.find(s => s.id === selectedSetlistId.value[0]) ?? null
@@ -186,7 +190,7 @@ function addSongToSetlist(songsToAdd: number[]) {
     if (setlist) {
         setlist.songs = setlist.songs || []
         setlist.songs.push(...(songsToAdd.map((s1: number) => {
-            const result = setlists.value[0].songs?.find(s2 => s2.id === s1)
+            const result = copy(setlists.value[0].songs?.find(s2 => s2.id === s1))
             result.song_id = result.id
             result.id = undefined
             return result
@@ -268,7 +272,7 @@ onMounted(() => {
             <v-card :title="dialogSong.id ? 'Aggiungi Canzone' : 'Modifica Canzone'">
                 <v-card-text>
                     <v-autocomplete autocomplete="off" ref="autocompleteRef" v-model="selectedTrack"
-                        v-on:update:search="onSearch" v-model:search="search" :items="tracks" :loading="loading"
+                         v-model:search="search" :items="tracks" :loading="loading"
                         label="Cerca brano" item-title="name" item-value="id" hide-no-data hide-selected
                         @update:model-value="onSelect" clearable>
                         <template v-slot:item="{ props, item }">

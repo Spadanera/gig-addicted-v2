@@ -71,6 +71,13 @@ export interface Song extends Repository {
   removed: boolean
 }
 
+export interface SetlistSong extends Song {
+  id: number
+  setlist_id: number
+  song_id: number
+  position: number
+}
+
 export interface Setlist extends Repository {
   id: number
   name: string
@@ -79,13 +86,6 @@ export interface Setlist extends Repository {
   duration?: number
   isPublic?: boolean
   songs?: SetlistSong[]
-}
-
-export interface SetlistSong extends Song {
-  id: number
-  setlist_id: number
-  song_id: number
-  position: number
 }
 
 export interface SetlistInput extends Repository { 

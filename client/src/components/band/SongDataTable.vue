@@ -2,9 +2,9 @@
 import { ref } from 'vue'
 import type { SortItem } from 'vuetify/lib/components/VDataTable/composables/sort.mjs'
 import { formatSecondsToMinutesSeconds } from "@/services/utils"
-import { type SetlistSong, type Song } from '../../../../models/src'
+import { type SetlistSong } from '../../../../models/src'
 
-const props = defineProps<{ songs: Song[], addMode: boolean, repertoire: boolean }>()
+const props = defineProps<{ songs: SetlistSong[], addMode: boolean, repertoire: boolean }>()
 const emit = defineEmits(['editsong', 'add', 'cancel', 'togglesong'])
 
 const sortBy = ref([{ key: 'name', order: 'asc' } as SortItem])
@@ -20,7 +20,7 @@ if (!props.addMode) {
     songHeaders.value.push({ title: '', key: 'action' })
 }
 
-function getRowClass(item: Song) {
+function getRowClass(item: SetlistSong) {
     return item.removed ? 'line-through' : ''
 }
 
