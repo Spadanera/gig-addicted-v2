@@ -2,11 +2,11 @@
 import { ref, onMounted } from 'vue'
 import Axios from '@/services/client'
 import { SnackbarStore } from '@/stores'
-import { requiredRule, fileRequiredRule, copy } from '@/services/utils';
+import { requiredRule, fileRequiredRule, copy, isOwner, canEditDetails } from '@/services/utils';
 import { type Band } from '../../../../models/src'
 import { useRouter } from 'vue-router'
 
-const props = defineProps(['band_id'])
+const props = defineProps(['band_id', 'roles'])
 const emit = defineEmits(['band'])
 
 const router = useRouter()
@@ -97,9 +97,9 @@ onMounted(async () => {
                             {{ band.biography }}
                         </v-card-text>
                         <v-card-actions>
-                            <v-btn @click="startEditing">Modifica</v-btn>
-                            <v-btn @click="startEditingLogo">Carica Logo</v-btn>
-                            <v-btn color="danger" @click="confirmDelete = true">Elimina Band</v-btn>
+                            <v-btn v-if="canEditDetails(props.roles)" @click="startEditing">Modifica</v-btn>
+                            <v-btn v-if="canEditDetails(props.roles)" @click="startEditingLogo">Carica Logo</v-btn>
+                            <v-btn v-if="isOwner(props.roles)" color="danger" @click="confirmDelete = true">Elimina Band</v-btn>
                         </v-card-actions>
                     </v-card>
                     <v-card v-else-if="editing">

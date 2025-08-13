@@ -2,11 +2,11 @@ import { RowDataPacket } from "mysql2"
 
 export enum Roles {
   owner = 'owner',
-  editor_detail = 'editor_details',
+  editor_detail = 'editor_detail',
   editor_setlist = 'editor_setlist',
   editor_event = 'editor_event',
   editor_member = 'editor_member',
-  viewer  = 'viwer',
+  viewer  = 'viewer',
   unauthorized = 'unauthorized'
 }
 
@@ -15,10 +15,6 @@ export interface Reset {
   email: string
   token: string
   creation_date: Date
-}
-
-export interface Invitation extends User {
-  
 }
 
 export interface Repository extends RowDataPacket {
@@ -53,11 +49,13 @@ export interface Band extends Repository {
   songs?: [Song]
 }
 
-export interface BandMember extends Repository {
+export interface BandMember extends User {
   id: number
   user_id: number
   band_id: number
-  role: Roles
+  role: Roles[]
+  instrument: string[]
+  invitation?: string
 }
 
 export interface Song extends Repository {

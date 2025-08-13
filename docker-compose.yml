@@ -36,7 +36,7 @@ services:
       MAIL_API_SECRET: ${MAIL_API_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      MAIL_FROM: 'info-dev@gigaddicted.com'
+      MAIL_FROM: 'info-dev@chicomanda.com'
       MAIL_FROM_NAME: 'Info-dev - Gig Addicted'
       SECRET: 'pippopluto'
       PORT: 3000

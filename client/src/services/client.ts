@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse, type AxiosRequestConfig, type RawAxiosRequestHeaders, type AxiosInstance, type AxiosProgressEvent } from 'axios'
-import { type Repository, type User, type Event, type Invitation, type Band, type Song, type Setlist, type SetlistInput, type SetlistSong } from "../../../models/src"
+import { type Repository, type User, type Invitation, type Band, type Song, type Setlist, type SetlistInput, type SetlistSong, type BandMember } from "../../../models/src"
 import router from '@/router'
 import { UserStore, SnackbarStore, ProgressStore } from '@/stores'
 import type { StoreDefinition } from 'pinia'
@@ -201,6 +201,10 @@ export default class Axios {
         return await this.getSingle<Band>(`/band/myband/${band_id}/details`)
     }
 
+    async GetBandRoles(band_id: number): Promise<any> {
+        return await this.getSingle(`/band/myband/${band_id}/roles`)
+    }
+
     async UpdateBandDetails(band: Band): Promise<number> {
         return await this.put<Band>(`/band/myband/${band.id}/details`, band)
     }
@@ -249,6 +253,23 @@ export default class Axios {
 
     async GetDeezerSongs(val: string): Promise<Song[]> {
         return await this.get<Song>(`/search-track?q=${encodeURIComponent(val)}`)
+    }
+
+    // Band Member Method
+    async GetBandMember(band_id: number): Promise<BandMember[]> {
+        return await this.get<BandMember>(`/band/myband/${band_id}/member`)
+    }
+
+    async InviteBandMember(band_member: BandMember): Promise<number> {
+        return await this.post<BandMember>(`/band/myband/${band_member.band_id}/member`, band_member)
+    }
+
+    async EditBandMember(band_member: BandMember): Promise<number> {
+        return await this.put<BandMember>(`/band/myband/${band_member.band_id}/member`, band_member)
+    }
+
+    async RemoveBandMember(band_member: BandMember): Promise<number> {
+        return await this.delete(`/band/myband/${band_member.band_id}/member/${band_member.id}`)
     }
 }
 

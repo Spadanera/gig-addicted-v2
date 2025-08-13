@@ -29,8 +29,8 @@ class Api {
 
             result_id = result.insertId;
             await connection.execute(
-                'INSERT INTO band_member (user_id, band_id, role) VALUES (?, ?, ?)',
-                [user_id, result_id, Roles.owner]
+                'INSERT INTO band_member (user_id, band_id, role, instrument) VALUES (?, ?, ?,?)',
+                [user_id, result_id, JSON.stringify([Roles.owner]), JSON.stringify([])]
             );
 
             await connection.commit();
@@ -71,6 +71,14 @@ class Api {
         return await db.executeUpdate(`
             UPDATE band SET logo = ? WHERE id = ?
             `, [logo, band_id])
+    }
+
+    async getBandRoles(band_id: number, user_id: number): Promise<any> {
+        return (await db.queryOne(
+            `SELECT CAST(role AS JSON) as roles
+            FROM band_member
+            WHERE band_id = ? AND user_id = ?`
+            , [band_id, user_id])).roles
     }
 }
 

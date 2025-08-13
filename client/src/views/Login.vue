@@ -1,31 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Axios from '@/services/client'
-import { RouterLink } from 'vue-router'
-import { requiredRule, emailRule } from '@/services/utils';
 import Logo from '@/components/Logo.vue';
 
 const axios: Axios = new Axios()
 const form = ref(null)
 
 const emit = defineEmits(['login'])
-
-const credentials = ref({
-  email: '',
-  password: ''
-})
-
-async function login() {
-  const { valid } = await form.value?.validate()
-  if (valid) {
-    try {
-      await axios.Login(credentials.value.email, credentials.value.password)
-      emit("login")
-    } catch (error) {
-      console.error(error)
-    }
-  }
-}
 
 async function googleLogin() {
   location.href = "/auth/google"
@@ -40,15 +21,6 @@ async function googleLogin() {
           <v-card>
             <v-card-text style="text-align: center;">
               <Logo></Logo>
-              <!-- <v-form ref="form" fast-fail @submit.prevent>
-                <v-text-field :rules="[requiredRule, emailRule]" type="email" label="Email"
-                  v-model="credentials.email"></v-text-field>
-                <v-text-field :rules="[requiredRule]" type="password" label="Password"
-                  v-model="credentials.password"></v-text-field>
-              </v-form>
-              <p>
-                <RouterLink to="/askreset">Password dimenticata</RouterLink>
-              </p> -->
             </v-card-text>
             <v-card-actions>
               <v-btn class="mt-2" @click="googleLogin" block prepend-icon="mdi-google">ACCEDI CON GOOGLE</v-btn>

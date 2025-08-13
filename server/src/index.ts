@@ -12,6 +12,7 @@ import { User } from "../../models/src"
 import db from "./db"
 import connection from "./db/connection"
 import userApi from "./api/user"
+import memberApi from "./api/member";
 
 const AUTH_COOKIE_NAME: string = 'lp-session'
 
@@ -173,16 +174,25 @@ app.get('/api/search-track', async (req, res) => {
 
 app.use('public', express.json(), publicApiRouter)
 
-app.get("/auth/google",
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-)
+app.get("/auth/google", (req, res, next) => {
+  const token = req.query.token || "";
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: token as string
+  })(req, res, next);
+});
 
 app.get('/auth/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/auth/failure',
         session: true,
     }),
-    (req, res) => {
+    async (req, res) => {
+        const token = req.query.state as string
+        if (token) {
+            const user = (req.user as any)
+            await memberApi.acceptInvitation(user.id, user.email, token)
+        }
         res.redirect('/mybands')
     }
 )

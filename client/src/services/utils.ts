@@ -1,7 +1,40 @@
-import { type SetlistSong } from '../../../models/src'
+import { Roles, type SetlistSong } from '../../../models/src'
 
 export function copy<T>(input: T): T {
     return JSON.parse(JSON.stringify(input))
+}
+
+export function isViewer(roles: Roles[]) {
+  return roles && (roles.includes(Roles.owner) ||
+    roles.includes(Roles.editor_detail) ||
+    roles.includes(Roles.editor_event) ||
+    roles.includes(Roles.editor_member) ||
+    roles.includes(Roles.editor_setlist) ||
+    roles.includes(Roles.viewer))
+}
+
+export function canEditDetails(roles: Roles[]) {
+  return roles && (roles.includes(Roles.owner) ||
+    roles.includes(Roles.editor_detail))
+}
+
+export function canEditSetlist(roles: Roles[]) {
+  return roles && (roles.includes(Roles.owner) ||
+    roles.includes(Roles.editor_setlist))
+}
+
+export function canEditEvent(roles: Roles[]) {
+  return roles && (roles.includes(Roles.owner) ||
+    roles.includes(Roles.editor_event))
+}
+
+export function canEditMember(roles: Roles[]) {
+  return roles && (roles.includes(Roles.owner) ||
+    roles.includes(Roles.editor_member))
+}
+
+export function isOwner(roles: Roles[]) {
+  return roles && roles.includes(Roles.owner)
 }
 
 export function updatePositions(songs: SetlistSong[]): SetlistSong[] {

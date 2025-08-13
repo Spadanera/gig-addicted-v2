@@ -2,8 +2,13 @@ import sharp from 'sharp'
 import { Roles, User } from "../../../models/src"
 import { Request, Response } from "express"
 
+function hasCommonElement(arr1: string[], arr2: string[]): boolean {
+    const set2 = new Set(arr2);
+    return arr1.some(item => set2.has(item));
+}
+
 export const isBandOwner = (req: Request, res: Response, next: any) => {
-    if ([Roles.owner].includes(getBandRole(req))) {
+    if (hasCommonElement([Roles.owner], getBandRole(req))) {
         next()
     } else {
         res.status(401).json('Unauthorized')
@@ -11,7 +16,7 @@ export const isBandOwner = (req: Request, res: Response, next: any) => {
 }
 
 export const canViewBand = (req: Request, res: Response, next: any) => {
-    if (getBandRole(req) !== Roles.unauthorized) {
+    if (!getBandRole(req).includes(Roles.unauthorized)) {
         next()
     } else {
         res.status(401).json('Unauthorized')
@@ -19,7 +24,7 @@ export const canViewBand = (req: Request, res: Response, next: any) => {
 }
 
 export const canEditBandDetails = (req: Request, res: Response, next: any) => {
-    if ([Roles.owner, Roles.editor_detail].includes(getBandRole(req))) {
+    if (hasCommonElement([Roles.owner, Roles.editor_detail], getBandRole(req))) {
         next()
     } else {
         res.status(401).json('Unauthorized')
@@ -27,7 +32,7 @@ export const canEditBandDetails = (req: Request, res: Response, next: any) => {
 }
 
 export const canEditBandSetlist = (req: Request, res: Response, next: any) => {
-    if ([Roles.owner, Roles.editor_setlist].includes(getBandRole(req))) {
+    if (hasCommonElement([Roles.owner, Roles.editor_setlist], getBandRole(req))) {
         next()
     } else {
         res.status(401).json('Unauthorized')
@@ -35,7 +40,7 @@ export const canEditBandSetlist = (req: Request, res: Response, next: any) => {
 }
 
 export const canEditBandEvents = (req: Request, res: Response, next: any) => {
-    if ([Roles.owner, Roles.editor_event].includes(getBandRole(req))) {
+    if (hasCommonElement([Roles.owner, Roles.editor_event], getBandRole(req))) {
         next()
     } else {
         res.status(401).json('Unauthorized')
@@ -43,15 +48,15 @@ export const canEditBandEvents = (req: Request, res: Response, next: any) => {
 }
 
 export const canEditBandMember = (req: Request, res: Response, next: any) => {
-    if ([Roles.owner, Roles.editor_member].includes(getBandRole(req))) {
+    if (hasCommonElement([Roles.owner, Roles.editor_member], getBandRole(req))) {
         next()
     } else {
         res.status(401).json('Unauthorized')
     }
 }
 
-function getBandRole(req: Request): Roles {
-    return (req.user as User).bands?.find(b => b.band_id === +req.params.id)?.role || Roles.unauthorized;
+function getBandRole(req: Request): Roles[] {
+    return (req.user as User).bands?.find(b => b.band_id === +req.params.id)?.role || [Roles.unauthorized];
 }
 
 export function getCurrentDateTimeInItaly(): string {

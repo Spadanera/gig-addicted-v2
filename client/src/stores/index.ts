@@ -20,7 +20,6 @@ export const UserStore: StoreDefinition = defineStore('user', {
                 id: state.id,
                 username: state.username,
                 email: state.email,
-                roles: state.roles,
                 isLoggedIn: state.isLoggedIn,
                 avatar: state.avatar
             }
@@ -38,7 +37,6 @@ export const UserStore: StoreDefinition = defineStore('user', {
             this.username = user.username
             this.email = user.email
             this.avatar = user.avatar
-            this.roles = user.roles
             this.isLoggedIn = isLoggedIn
         },
         login(user: User) {
@@ -57,7 +55,6 @@ export const UserStore: StoreDefinition = defineStore('user', {
                     username: this.username,
                     email: this.email,
                     avatar: this.avatar,
-                    roles: this.roles,
                     isLoggedIn: true
                 }
             }

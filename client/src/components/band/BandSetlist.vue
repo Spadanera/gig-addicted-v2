@@ -2,11 +2,11 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import Axios from '@/services/client'
 import { type Setlist, type SetlistInput, type SetlistSong, type Song } from '../../../../models/src'
-import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMinutesSeconds, copy, updatePositions } from "@/services/utils"
+import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMinutesSeconds, copy, updatePositions, canEditSetlist } from "@/services/utils"
 import SongDataTable from './SongDataTable.vue'
 import debounce from 'lodash.debounce';
 
-const props = defineProps(['band_id', 'showSetlist'])
+const props = defineProps(['band_id', 'showSetlist', 'roles'])
 const emit = defineEmits(['tooglesetlist'])
 
 const axios: Axios = new Axios()
@@ -124,7 +124,6 @@ async function removeSong() {
 }
 
 function toggleSongFromSetlist(song: SetlistSong) {
-    console.log(song)
     const setlist = setlists.value.find((s: Setlist) => s.id === song.setlist_id)
     const s = setlist.songs.find((s: SetlistSong) => s.id === song.id)
     s.removed = !s.removed
@@ -255,7 +254,7 @@ onMounted(() => {
                         <v-divider></v-divider>
                         <v-list-subheader>
                             SCALETTE
-                            <v-btn style="margin-bottom: 4px;" small class="ml-auto" variant="text" icon="mdi-plus"
+                            <v-btn v-if="canEditSetlist(props.roles)" style="margin-bottom: 4px;" small class="ml-auto" variant="text" icon="mdi-plus"
                                 @click.stop="upsertSetlistDialog()"></v-btn>
                         </v-list-subheader>
                         <v-list-item @click="toggleSetlist" v-for="setlist in setlists.slice(1)" :key="setlist.id" :value="setlist.id">
@@ -267,13 +266,13 @@ onMounted(() => {
                                     +
                                 s.duration, 0))}}
                             </v-list-item-subtitle>
-                            <template v-if="selectedSetlistId[0] === setlist.id" v-slot:append>
+                            <template v-if="selectedSetlistId[0] === setlist.id && canEditSetlist(props.roles)" v-slot:append>
                                 <v-btn @click.stop="confirmDeleteSetlist = true" icon="mdi-delete"
                                     variant="text"></v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
-                    <div class="floating-save bg-primary" v-if="editing">
+                    <div class="floating-save bg-primary" v-if="editing && canEditSetlist(props.roles)">
                         <v-btn style="width: 50%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
                             variant="plain"></v-btn>
                         <v-btn style="width: 50%; height: 100%;" text="ANNULLA" @click="loadSetlist"
@@ -283,7 +282,7 @@ onMounted(() => {
             </transition>
             <v-col :sm="$vuetify.display.smAndUp ? 9 : 12" id="songs" style="padding-left: 0;" cols="12">
                 <div v-if="selectedSetlist.songs && selectedSetlist.songs.length">
-                    <SongDataTable :repertoire="selectedSetlist.id === 0" :add-mode="false" @updatesongs="updateSong"
+                    <SongDataTable :can-edit="canEditSetlist(props.roles)" :repertoire="selectedSetlist.id === 0" :add-mode="false" @updatesongs="updateSong"
                         :songs="selectedSetlist.songs" @editsong="upsertSongDialog" @togglesong="toggleSongFromSetlist">
                     </SongDataTable>
                 </div>
@@ -346,12 +345,12 @@ onMounted(() => {
                 <v-btn text="Conferma" variant="plain" @click="deleteSetlist"></v-btn>
             </template>
         </Confirm>
-        <v-fab v-if="selectedSetlist?.id === 0" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
+        <v-fab v-if="selectedSetlist?.id === 0 && canEditSetlist(props.roles)" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
             location="bottom right" @click="upsertSongDialog()"></v-fab>
-        <v-fab v-if="selectedSetlist?.id !== 0" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
+        <v-fab v-if="selectedSetlist?.id !== 0 && canEditSetlist(props.roles)" icon="mdi-plus" app style="position: fixed; right: 10px; bottom: 10px;"
             location="bottom right" @click="sheet = true"></v-fab>
         <v-bottom-sheet v-model="sheet">
-            <SongDataTable :repertoire="false" @add="addSongToSetlist" @cancel="sheet = false" :songs="availableSong"
+            <SongDataTable :can-edit="canEditSetlist(props.roles)" :repertoire="false" @add="addSongToSetlist" @cancel="sheet = false" :songs="availableSong"
                 add-mode>
             </SongDataTable>
         </v-bottom-sheet>

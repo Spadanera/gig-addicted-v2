@@ -29,7 +29,7 @@ const songHeaderSetlist = [
     { title: '', key: 'action', sortable: false },
 ]
 
-const props = defineProps<{ songs: SetlistSong[], addMode: boolean, repertoire: boolean }>()
+const props = defineProps<{ songs: SetlistSong[], addMode: boolean, repertoire: boolean, canEdit: boolean }>()
 const emit = defineEmits(['editsong', 'add', 'cancel', 'togglesong', 'updatesongs'])
 
 const sortBy = ref([{ key: 'position', order: 'asc' } as SortItem, { key: 'name', order: 'asc' } as SortItem])
@@ -123,7 +123,7 @@ const songHeadersFiltered = computed(() => {
             density="comfortable" fixed-header hide-default-footer>
             <template v-slot:item.position="{ item }">
                 <div class="position-cell">
-                    <span v-if="!repertoire && !addMode" class="drag-handle mr-2" title="Trascina per riordinare">
+                    <span v-if="!repertoire && !addMode && canEdit" class="drag-handle mr-2" title="Trascina per riordinare">
                         <v-icon small>mdi-drag</v-icon>
                     </span>
                     <span :class="getRowClass(item)">{{ item.position }}</span>
@@ -148,17 +148,17 @@ const songHeadersFiltered = computed(() => {
             </template>
 
             <template v-slot:item.action="{ item }">
-                <v-btn v-if="repertoire" icon variant="text" @click.stop="emit('editsong', item)">
+                <v-btn v-if="repertoire && canEdit" icon variant="text" @click.stop="emit('editsong', item)">
                     <v-icon>mdi-pencil</v-icon>
                 </v-btn>
-                <v-btn v-else-if="!addMode" icon variant="text" @click.stop="emit('togglesong', item)">
+                <v-btn v-else-if="!addMode && canEdit" icon variant="text" @click.stop="emit('togglesong', item)">
                     <v-icon v-if="!item.removed">mdi-delete</v-icon>
                     <v-icon v-else>mdi-undo-variant</v-icon>
                 </v-btn>
             </template>
 
             <template v-slot:bottom v-if="addMode">
-                <div class="d-flex justify-end pa-1">
+                <div v-if="canEdit" class="d-flex justify-end pa-1">
                     <v-btn :disabled="selectedSongs.length === 0" variant="flat" class="mr-2"
                         @click="emit('add', selectedSongs)">
                         AGGIUNGI
