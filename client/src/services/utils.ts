@@ -1,5 +1,19 @@
+import { type SetlistSong } from '../../../models/src'
+
 export function copy<T>(input: T): T {
     return JSON.parse(JSON.stringify(input))
+}
+
+export function updatePositions(songs: SetlistSong[]): SetlistSong[] {
+  let pos = 1;
+
+  return songs.map(song => {
+    if (song.removed) {
+      return { ...song, position: null };
+    } else {
+      return { ...song, position: pos++ };
+    }
+  });
 }
 
 export function formatSecondsToHoursMinutesSeconds(seconds: number): string {

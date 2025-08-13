@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import Axios from '@/services/client'
 import { type Setlist, type SetlistInput, type SetlistSong, type Song } from '../../../../models/src'
-import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMinutesSeconds, copy } from "@/services/utils"
+import { requiredRule, positiveIntegerRule, validUrlRule, formatSecondsToHoursMinutesSeconds, copy, updatePositions } from "@/services/utils"
 import SongDataTable from './SongDataTable.vue'
 import debounce from 'lodash.debounce';
 
@@ -33,6 +33,7 @@ const loading = ref(false)
 const autocompleteRef = ref()
 const sheet = ref<boolean>(false)
 const debouncedFetch = debounce(onSearch, 400);
+const orderEdited = ref<boolean>(false)
 
 watch(search, (val) => {
   debouncedFetch(val);
@@ -43,7 +44,7 @@ const selectedSetlist = computed(() =>
 )
 
 const editing = computed(() =>
-    selectedSetlist.value.songs?.filter(s => s.id === undefined || s.removed).length && selectedSetlist.value.id !== 0
+    (selectedSetlist.value.songs?.filter(s => s.id === undefined || s.removed).length || selectedSetlist.value.orderEdited) && selectedSetlist.value.id !== 0
 )
 
 const availableSong = computed(() => setlists.value[0].songs.filter(song1 => 
@@ -117,8 +118,11 @@ async function removeSong() {
 }
 
 function toggleSongFromSetlist(song: SetlistSong) {
-    const s = selectedSetlist.value.songs.find((s: SetlistSong) => s.id === song.id)
+    console.log(song)
+    const setlist = setlists.value.find((s:Setlist) => s.id === song.setlist_id)
+    const s = setlist.songs.find((s: SetlistSong) => s.id === song.id)
     s.removed = !s.removed
+    setlist.songs = updatePositions(setlist.songs)
 }
 
 function upsertSongDialog(song?: Song) {
@@ -189,14 +193,21 @@ function addSongToSetlist(songsToAdd: number[]) {
     const setlist: Setlist = setlists.value.find(s => s.id === selectedSetlist.value.id)
     if (setlist) {
         setlist.songs = setlist.songs || []
-        setlist.songs.push(...(songsToAdd.map((s1: number) => {
+        setlist.songs.push(...(songsToAdd.map((s1: number, index: number) => {
             const result = copy(setlists.value[0].songs?.find(s2 => s2.id === s1))
             result.song_id = result.id
             result.id = undefined
+            result.position = setlist.songs.length + index + 1
             return result
         })))
         sheet.value = false
     }
+}
+
+function updateSong(songs: SetlistSong[]) {
+    const setlist = setlists.value.find((s:Setlist) => s.id === selectedSetlistId.value[0])
+    setlist.songs = updatePositions(songs)
+    setlist.orderEdited = true
 }
 
 async function saveSetlistSong() {
@@ -234,7 +245,7 @@ onMounted(() => {
                     </v-list-item>
                     <v-divider></v-divider>
                     <v-list-subheader>
-                        SCALETTE MODELLO
+                        SCALETTE
                         <v-btn style="margin-bottom: 4px;" small class="ml-auto" variant="text" icon="mdi-plus"
                             @click.stop="upsertSetlistDialog()"></v-btn>
                     </v-list-subheader>
@@ -251,15 +262,17 @@ onMounted(() => {
                         </template>
                     </v-list-item>
                 </v-list>
-                <div class="floating-save" v-if="editing">
-                    <v-btn style="width: 100%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
+                <div class="floating-save bg-primary" v-if="editing">
+                    <v-btn style="width: 50%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
+                        variant="plain"></v-btn>
+                    <v-btn style="width: 50%; height: 100%;" text="ANNULLA" @click="loadSetlist"
                         variant="plain"></v-btn>
                 </div>
             </v-col>
             <v-divider vertical></v-divider>
             <v-col style="padding-left: 0;" cols="12" sm="9">
-                <div v-if="selectedSetlist.songs">
-                    <SongDataTable :repertoire="selectedSetlist.id === 0" :add-mode="false"
+                <div v-if="selectedSetlist.songs && selectedSetlist.songs.length">
+                    <SongDataTable :repertoire="selectedSetlist.id === 0" :add-mode="false" @updatesongs="updateSong"
                         :songs="selectedSetlist.songs" @editsong="upsertSongDialog" @togglesong="toggleSongFromSetlist">
                     </SongDataTable>
                 </div>
@@ -338,10 +351,9 @@ onMounted(() => {
 <style scoped>
 .floating-save {
     position: absolute;
-    bottom: 36px;
+    bottom: 12px;
     left: 0;
     width: 100%;
-    background-color: red;
     height: 50px;
 }
 </style>

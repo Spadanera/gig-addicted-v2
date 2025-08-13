@@ -6,6 +6,15 @@ class Api {
     constructor() {
     }
 
+    sortSetlistSongs(setlists: Setlist[]): Setlist[] {
+        return setlists.map(setlist => ({
+            ...setlist,
+            songs: setlist.songs
+                ? [...setlist.songs].sort((a, b) => a.position - b.position)
+                : undefined
+        }));
+    }
+
     async getRepertoire(band_id: number): Promise<Song[]> {
         return await db.query<Song>(`SELECT * FROM song WHERE band_id = ? AND IFNULL(removed, FALSE) != TRUE`, [band_id])
     }
@@ -27,10 +36,13 @@ class Api {
     }
 
     async getSetlistTemplates(band_id: number): Promise<Setlist[]> {
-        return await db.query<Setlist>(`
+        return this.sortSetlistSongs(await db.query<Setlist>(`
             SELECT id, name, band_id,
             (
-                SELECT JSON_ARRAYAGG(JSON_OBJECT(
+                SELECT 
+                    COALESCE(
+                        JSON_ARRAYAGG(
+                            JSON_OBJECT(
                                     'id', setlist_song.id,
                                     'name', song.name,
                                     'song_id', setlist_song.song_id,
@@ -39,8 +51,12 @@ class Api {
                                     'artist', song.artist,
                                     'album', song.album,
                                     'duration', song.duration,
-                                    'link', song.link
-                                ))  
+                                    'link', song.link,
+                                    'setlist_id', setlist_song.setlist_id
+                                )
+                            )
+                        , JSON_ARRAY()
+                    )
                 FROM song
                 INNER JOIN setlist_song ON song.id = setlist_song.song_id 
                 WHERE setlist_song.setlist_id = setlist.id AND IFNULL(removed, FALSE) != TRUE
@@ -48,7 +64,7 @@ class Api {
             FROM setlist
             WHERE setlist.band_id = ? AND template = 1
             `,
-            [band_id])
+            [band_id]))
     }
 
     async saveSetlistSong(setlist_id: number, input: SetlistInput): Promise<number> {
