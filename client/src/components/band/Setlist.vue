@@ -273,7 +273,7 @@ onMounted(() => {
                         </v-list-item>
                     </v-list>
                     <div class="floating-save bg-primary" v-if="editing && canEditSetlist(props.roles)">
-                        <v-btn style="width: 50%; height: 100%;" text="SALVA SCALETTA" @click="saveSetlistSong"
+                        <v-btn style="width: 50%; height: 100%;" text="SALVA" @click="saveSetlistSong"
                             variant="plain"></v-btn>
                         <v-btn style="width: 50%; height: 100%;" text="ANNULLA" @click="loadSetlist"
                             variant="plain"></v-btn>

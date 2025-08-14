@@ -113,7 +113,7 @@ const songHeadersFiltered = computed(() => {
 
 <template>
     <div>
-        <v-text-field v-if="props.repertoire || props.addMode" v-model="songSearch" label="Cerca"
+        <v-text-field v-if="props.repertoire || props.addMode" v-model="songSearch" label="Cerca" :bg-color=" addMode ? 'secondary' : ''"
             prepend-inner-icon="mdi-magnify" variant="filled" hide-details single-line clearable density="compact"
             :rounded="false" autocomplete="off" />
 
